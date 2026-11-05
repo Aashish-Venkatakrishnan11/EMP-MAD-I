@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field %}
+{% block title %}Student registration | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="panel auth-box wide">
+  <h1>Student registration</h1>
+  <p class="text-muted">You can log in as soon as you register.</p>
+  <form method="post">
+    <div class="row g-3">
+      {% include "auth/_account_fields.html" %}
+      <div class="col-md-6">{{ field(form, 'roll_number', 'Roll number', required=true) }}</div>
+      <div class="col-md-6">{{ field(form, 'program', 'Programme (optional)') }}</div>
+    </div>
+    <button class="btn btn-primary mt-4" type="submit">Register</button>
+    <a class="btn btn-link mt-4" href="{{ url_for('auth.login') }}">I already have an account</a>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% block title %}{{ code }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="panel auth-box text-center">
+  <h1>{{ code }}</h1>
+  <p class="text-muted">{{ message }}</p>
+  <a class="btn btn-primary" href="{{ url_for('auth.index') }}">Go to your dashboard</a>
+</div>
+{% endblock %}

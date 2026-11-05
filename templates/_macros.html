@@ -1,0 +1,58 @@
+{# Reusable pieces shared by all templates. #}
+
+{# Coloured tag for any status word used in the portal. #}
+{% macro tag(status) -%}
+  {%- set kinds = {
+    'Available': 'open', 'Approved': 'open', 'Booked': 'open', 'Booking Open': 'open', 'Active': 'open',
+    'Pending': 'wait', 'Slot Creation': 'wait',
+    'Draft': 'idle', 'Closed': 'idle', 'Full': 'idle', 'Inactive': 'idle',
+    'Cancelled': 'stop', 'Rejected': 'stop', 'Deactivated': 'stop',
+    'Completed': 'done', 'Published': 'done'
+  } -%}
+  <span class="tag tag-{{ kinds.get(status, 'idle') }}">{{ status }}</span>
+{%- endmacro %}
+
+{# The three phases every examination goes through. #}
+{% macro timeline(exam) %}
+<ol class="timeline" aria-label="Examination timeline">
+  {% if exam.slot_creation_open %}{% set state, css = 'Open now', 'is-now' %}
+  {% elif exam.booking_started or today > exam.slot_creation_end %}{% set state, css = 'Over', 'is-over' %}
+  {% elif exam.status == 'Slot Creation' %}{% set state, css = 'Opened by Admin, starts on the first date', '' %}
+  {% else %}{% set state, css = 'Not open', '' %}{% endif %}
+  <li class="{{ css }}">
+    <span class="phase-name">Examiners create slots</span>
+    <span class="phase-dates">{{ exam.slot_creation_start|datefmt }} to {{ exam.slot_creation_end|datefmt }}</span>
+    <span class="phase-state">{{ state }}</span>
+  </li>
+
+  {% if exam.booking_open %}{% set state, css = 'Open now', 'is-now' %}
+  {% elif exam.status in ['Closed', 'Completed'] and exam.booking_started %}{% set state, css = 'Over', 'is-over' %}
+  {% elif exam.status == 'Booking Open' and today < exam.booking_start %}{% set state, css = 'Opened by Admin, starts on the first date', '' %}
+  {% elif exam.status == 'Booking Open' %}{% set state, css = 'Deadline passed', 'is-over' %}
+  {% else %}{% set state, css = 'Not open', '' %}{% endif %}
+  <li class="{{ css }}">
+    <span class="phase-name">Students book slots</span>
+    <span class="phase-dates">{{ exam.booking_start|datefmt }} to {{ exam.booking_end|datefmt }}</span>
+    <span class="phase-state">{{ state }}</span>
+  </li>
+
+  {% if exam.results_published %}{% set state, css = 'Results published', 'is-over' %}
+  {% elif exam.evaluation_open %}{% set state, css = 'Evaluation in progress', 'is-now' %}
+  {% else %}{% set state, css = 'After booking closes', '' %}{% endif %}
+  <li class="{{ css }}">
+    <span class="phase-name">Evaluation and results</span>
+    <span class="phase-dates">Rubric-based marking by examiners</span>
+    <span class="phase-state">{{ state }}</span>
+  </li>
+</ol>
+{% endmacro %}
+
+{# A labelled form input. `value` is what to show when the form has not
+   been submitted yet (for example the saved value on an edit page). #}
+{% macro field(form, name, label, value='', type='text', required=false, help='', extra='') %}
+<label class="form-label" for="{{ name }}">{{ label }}</label>
+<input class="form-control" type="{{ type }}" id="{{ name }}" name="{{ name }}"
+       value="{{ form.get(name, value if value is not none else '') if type != 'password' else '' }}"
+       {% if required %}required{% endif %} {{ extra|safe }}>
+{% if help %}<div class="form-text">{{ help }}</div>{% endif %}
+{% endmacro %}

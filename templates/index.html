@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+<section class="landing py-4">
+  <h1>Examination slots, bookings and results in one place</h1>
+  <p class="lead mt-3">
+    The Admin sets up an examination and its timeline, examiners publish the slots they can take,
+    students book a seat, and marks are awarded against a rubric.
+  </p>
+  <p class="mt-4 d-flex flex-wrap gap-2">
+    <a class="btn btn-primary btn-lg" href="{{ url_for('auth.login') }}">Log in</a>
+    <a class="btn btn-outline-primary btn-lg" href="{{ url_for('auth.register_student') }}">Register as a student</a>
+    <a class="btn btn-outline-primary btn-lg" href="{{ url_for('auth.register_examiner') }}">Register as an examiner</a>
+  </p>
+
+  <ul class="role-list">
+    <li><strong>Admin</strong><span>Manages courses, examinations, rubrics and examiners, opens and closes each phase, and can reschedule a booking or change a slot's examiner.</span></li>
+    <li><strong>Examiner</strong><span>Creates slots during the slot creation period, sees who has booked, and evaluates each student using the rubric. Needs Admin approval first.</span></li>
+    <li><strong>Student</strong><span>Searches examinations, books one slot per examination during the booking period, and views published results and feedback.</span></li>
+  </ul>
+</section>
+{% endblock %}

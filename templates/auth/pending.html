@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag %}
+{% block title %}Awaiting approval | Examination Management Portal{% endblock %}
+{% block content %}
+{% set status = current_user.examiner_profile.status %}
+<div class="panel auth-box">
+  <h1>{% if status == 'Pending' %}Awaiting approval{% else %}Account not active{% endif %}</h1>
+  <p>Registration status: {{ tag(status) }}</p>
+  {% if status == 'Pending' %}
+    <p class="text-muted">The Admin has not reviewed your registration yet. Log in again later to check.</p>
+  {% else %}
+    <p class="text-muted">Your examiner account is not active. Contact the Admin if you think this is a mistake.</p>
+  {% endif %}
+  <a class="btn btn-outline-primary" href="{{ url_for('auth.logout') }}">Log out</a>
+</div>
+{% endblock %}

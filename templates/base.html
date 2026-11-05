@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Examination Management Portal{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  {% set ep = request.endpoint or '' %}
+  {# nav_link draws one navigation link; `active` highlights the current section #}
+  {% macro nav_link(endpoint, label, active) -%}
+    <li><a href="{{ url_for(endpoint) }}" class="{{ 'active' if active }}">{{ label }}</a></li>
+  {%- endmacro %}
+
+  <header class="site-header">
+    <div class="container d-flex flex-wrap align-items-center gap-2 py-2">
+      <a class="brand me-2" href="{{ url_for('auth.index') }}">Examination Portal</a>
+
+      {% if current_user.is_authenticated %}
+        <ul class="site-nav me-auto">
+          {% if current_user.role == 'admin' %}
+            {% set in_examiners = ep.startswith('admin.examiner') %}
+            {{ nav_link('admin.dashboard', 'Dashboard', ep == 'admin.dashboard') }}
+            {{ nav_link('admin.courses', 'Courses', ep.startswith('admin.course')) }}
+            {{ nav_link('admin.exams', 'Examinations', (ep.startswith('admin.exam') and not in_examiners) or ep.startswith('admin.rubric')) }}
+            {{ nav_link('admin.examiners', 'Examiners', in_examiners) }}
+            {{ nav_link('admin.students', 'Students', ep.startswith('admin.student')) }}
+            {{ nav_link('admin.slots', 'Slots', ep.startswith('admin.slot')) }}
+            {{ nav_link('admin.bookings', 'Bookings', ep.startswith('admin.booking')) }}
+          {% elif current_user.role == 'examiner' and current_user.examiner_profile.status == 'Approved' %}
+            {{ nav_link('examiner.dashboard', 'Dashboard', ep in ['examiner.dashboard', 'examiner.exam_detail']) }}
+            {{ nav_link('examiner.slots', 'My slots', ep.startswith('examiner.slot')) }}
+            {{ nav_link('examiner.evaluations', 'Evaluations', ep.startswith('examiner.evaluat')) }}
+            {{ nav_link('examiner.profile', 'Profile', ep == 'examiner.profile') }}
+          {% elif current_user.role == 'student' %}
+            {{ nav_link('student.dashboard', 'Dashboard', ep == 'student.dashboard') }}
+            {{ nav_link('student.exams', 'Examinations', ep.startswith('student.exam')) }}
+            {{ nav_link('student.schedule', 'Schedule', ep == 'student.schedule') }}
+            {{ nav_link('student.bookings', 'My bookings', ep == 'student.bookings') }}
+            {{ nav_link('student.results', 'Results', ep.startswith('student.result')) }}
+            {{ nav_link('student.profile', 'Profile', ep == 'student.profile') }}
+          {% endif %}
+        </ul>
+
+        <div class="account">
+          {% if current_user.role == 'admin' %}
+          <form action="{{ url_for('admin.search') }}" method="get" role="search">
+            <input class="form-control form-control-sm search-box" type="search" name="q" placeholder="Search name or ID"
+                   aria-label="Search students, examiners, examinations and bookings">
+          </form>
+          {% endif %}
+          <span class="who">{{ current_user.full_name }}</span>
+          <a class="btn btn-sm btn-outline-light" href="{{ url_for('auth.logout') }}">Log out</a>
+        </div>
+      {% else %}
+        <ul class="site-nav ms-auto">
+          {{ nav_link('auth.login', 'Log in', ep == 'auth.login') }}
+          {{ nav_link('auth.register_student', 'Student registration', ep == 'auth.register_student') }}
+          {{ nav_link('auth.register_examiner', 'Examiner registration', ep == 'auth.register_examiner') }}
+        </ul>
+      {% endif %}
+    </div>
+  </header>
+
+  <main class="container py-4">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for category, message in messages %}
+        <div class="alert alert-{{ category }} py-2" role="alert">{{ message }}</div>
+      {% endfor %}
+    {% endwith %}
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer py-3">
+    <div class="container">Examination Management Portal. Built with Flask, Jinja2, Bootstrap and SQLite.</div>
+  </footer>
+</body>
+</html>

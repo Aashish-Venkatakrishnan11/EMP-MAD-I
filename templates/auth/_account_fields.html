@@ -1,0 +1,9 @@
+{# Fields shared by student registration, examiner registration and
+   the Admin's "add examiner" form. Expects a `form` variable. #}
+{% from "_macros.html" import field %}
+<div class="col-md-6">{{ field(form, 'full_name', 'Full name', required=true) }}</div>
+<div class="col-md-6">{{ field(form, 'username', 'Username', required=true, help='3 to 40 letters, digits, dots or underscores.', extra='minlength="3" maxlength="40" pattern="[A-Za-z0-9_.]+"') }}</div>
+<div class="col-md-6">{{ field(form, 'email', 'Email', type='email', required=true) }}</div>
+<div class="col-md-6">{{ field(form, 'phone', 'Phone (optional)', type='tel') }}</div>
+<div class="col-md-6">{{ field(form, 'password', 'Password', type='password', required=true, help='At least 6 characters.', extra='minlength="6"') }}</div>
+<div class="col-md-6">{{ field(form, 'confirm_password', 'Confirm password', type='password', required=true, extra='minlength="6"') }}</div>

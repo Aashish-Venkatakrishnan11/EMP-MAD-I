@@ -1,0 +1,290 @@
+/* Examination Management Portal - custom styles on top of Bootstrap 5.
+   Only Bootstrap and plain CSS are used; there is no JavaScript. */
+
+:root {
+  --emp-paper: #f2f5f3;
+  --emp-surface: #ffffff;
+  --emp-ink: #16241f;
+  --emp-muted: #5b6b64;
+  --emp-green: #1c5b45;
+  --emp-green-deep: #123d2e;
+  --emp-amber: #e3a72f;
+  --emp-rule: #d5ded9;
+  --emp-brick: #a8372b;
+
+  --emp-serif: Charter, "Bitstream Charter", "Sitka Text", Cambria, Georgia, serif;
+  --emp-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Bootstrap variables re-pointed at the palette above */
+  --bs-body-bg: var(--emp-paper);
+  --bs-body-color: var(--emp-ink);
+  --bs-body-font-family: var(--emp-sans);
+  --bs-link-color: var(--emp-green);
+  --bs-link-color-rgb: 28, 91, 69;
+  --bs-link-hover-color: var(--emp-green-deep);
+  --bs-link-hover-color-rgb: 18, 61, 46;
+  --bs-border-color: var(--emp-rule);
+  --bs-secondary-color: var(--emp-muted);
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+h1, h2, h3, .brand {
+  font-family: var(--emp-serif);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+}
+h1 { font-size: 1.9rem; }
+h2 { font-size: 1.3rem; }
+h3 { font-size: 1.05rem; }
+
+.text-muted { color: var(--emp-muted) !important; }
+
+/* ---------- Header ---------- */
+.site-header {
+  background: var(--emp-green-deep);
+  color: #fff;
+  border-bottom: 4px solid var(--emp-amber);
+}
+.site-header .brand {
+  color: #fff;
+  font-size: 1.15rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.site-nav a {
+  display: block;
+  padding: 0.4rem 0.7rem;
+  border-radius: 4px;
+  color: #d6e6de;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+.site-nav a:hover { background: rgba(255, 255, 255, 0.1); color: #fff; }
+.site-nav a.active { background: #fff; color: var(--emp-green-deep); font-weight: 600; }
+.site-header .who { color: #d6e6de; font-size: 0.9rem; }
+.site-header .form-control {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: transparent;
+  color: #fff;
+}
+.site-header .form-control::placeholder { color: #b9cfc5; }
+.site-header .form-control:focus { background: #fff; color: var(--emp-ink); }
+
+main { flex: 1; }
+
+.site-footer {
+  border-top: 1px solid var(--emp-rule);
+  color: var(--emp-muted);
+  font-size: 0.85rem;
+}
+
+/* ---------- Page heading ---------- */
+.page-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+.page-head p { margin: 0.2rem 0 0; color: var(--emp-muted); }
+
+/* ---------- Panels ---------- */
+.panel {
+  background: var(--emp-surface);
+  border: 1px solid var(--emp-rule);
+  border-radius: 6px;
+  padding: 1.25rem;
+  margin-bottom: 1.25rem;
+}
+.panel > h2:first-child,
+.panel > .panel-head { margin-bottom: 0.9rem; }
+.panel-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+.panel-head h2 { margin: 0; }
+.panel-flush { padding: 0; overflow: hidden; }
+.panel-flush > .panel-head { padding: 1rem 1.25rem 0; }
+
+/* ---------- Figures strip (dashboard totals) ---------- */
+.figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  background: var(--emp-surface);
+  border: 1px solid var(--emp-rule);
+  border-radius: 6px;
+  margin: 0 0 1.25rem;
+  overflow: hidden;
+}
+.figures > div {
+  padding: 0.9rem 1.1rem;
+  border-right: 1px solid var(--emp-rule);
+  border-bottom: 1px solid var(--emp-rule);
+  margin: 0 -1px -1px 0;
+}
+.figures dt { font-weight: 500; font-size: 0.85rem; color: var(--emp-muted); }
+.figures dd {
+  margin: 0;
+  font-family: var(--emp-serif);
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1.15;
+  font-variant-numeric: tabular-nums;
+}
+.figures dd a { color: inherit; text-decoration: none; }
+.figures dd a:hover { color: var(--emp-green); }
+
+/* ---------- Tables ---------- */
+.table { --bs-table-bg: transparent; margin-bottom: 0; font-variant-numeric: tabular-nums; }
+.table > thead th {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--emp-muted);
+  background: #f7f9f8;
+  border-bottom: 1px solid var(--emp-rule);
+  white-space: nowrap;
+}
+.table > :not(caption) > * > * { padding: 0.6rem 0.9rem; vertical-align: middle; }
+.table > tbody > tr:last-child > * { border-bottom: 0; }
+.table .actions { white-space: nowrap; text-align: right; }
+.table .actions form { display: inline; }
+
+.empty { padding: 1.5rem 1.25rem; color: var(--emp-muted); margin: 0; }
+
+/* ---------- Status tags ---------- */
+.tag {
+  display: inline-block;
+  padding: 0.12rem 0.55rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid transparent;
+}
+.tag-open { background: #dff1e8; color: #14573f; border-color: #b7dcc9; }
+.tag-wait { background: #fbefd2; color: #7a5407; border-color: #f0d490; }
+.tag-idle { background: #e9eeec; color: #48564f; border-color: #d0d9d5; }
+.tag-stop { background: #f7e1de; color: #8a2a20; border-color: #eab9b3; }
+.tag-done { background: #dde7f3; color: #23467a; border-color: #b9cce6; }
+
+/* ---------- Examination timeline (the three phases of an exam) ---------- */
+.timeline {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  counter-reset: phase;
+  border: 1px solid var(--emp-rule);
+  border-radius: 6px;
+  overflow: hidden;
+  background: var(--emp-surface);
+}
+.timeline li {
+  counter-increment: phase;
+  padding: 0.85rem 1rem 0.9rem;
+  border-right: 1px solid var(--emp-rule);
+  border-top: 4px solid var(--emp-rule);
+}
+.timeline li:last-child { border-right: 0; }
+.timeline li::before {
+  content: counter(phase);
+  font-family: var(--emp-serif);
+  font-weight: 700;
+  color: var(--emp-muted);
+  margin-right: 0.4rem;
+}
+.timeline .phase-name { font-weight: 600; }
+.timeline .phase-dates { display: block; font-size: 0.9rem; color: var(--emp-muted); margin-top: 0.15rem; }
+.timeline .phase-state { display: block; font-size: 0.85rem; margin-top: 0.3rem; }
+.timeline li.is-now { border-top-color: var(--emp-amber); background: #fffaf0; }
+.timeline li.is-now .phase-state { color: #7a5407; font-weight: 600; }
+.timeline li.is-over { border-top-color: var(--emp-green); }
+.timeline li.is-over .phase-state { color: var(--emp-green); }
+@media (max-width: 720px) {
+  .timeline { grid-template-columns: 1fr; }
+  .timeline li { border-right: 0; }
+}
+
+/* ---------- Bars (statistics without JavaScript) ---------- */
+.bar-row { display: grid; grid-template-columns: minmax(0, 11rem) 1fr 2.5rem; gap: 0.75rem; align-items: center; margin-bottom: 0.55rem; }
+.bar-row .bar-label { font-size: 0.9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bar-row .bar-value { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; }
+.progress { --bs-progress-bg: #e6ece9; --bs-progress-bar-bg: var(--emp-green); --bs-progress-height: 0.7rem; border-radius: 3px; }
+.progress-bar.bar-amber { background-color: var(--emp-amber); }
+
+/* ---------- Buttons and forms ---------- */
+.btn-primary {
+  --bs-btn-bg: var(--emp-green);
+  --bs-btn-border-color: var(--emp-green);
+  --bs-btn-hover-bg: var(--emp-green-deep);
+  --bs-btn-hover-border-color: var(--emp-green-deep);
+  --bs-btn-active-bg: var(--emp-green-deep);
+  --bs-btn-active-border-color: var(--emp-green-deep);
+  --bs-btn-disabled-bg: #7fa293;
+  --bs-btn-disabled-border-color: #7fa293;
+}
+.btn-outline-primary {
+  --bs-btn-color: var(--emp-green);
+  --bs-btn-border-color: var(--emp-green);
+  --bs-btn-hover-bg: var(--emp-green);
+  --bs-btn-hover-border-color: var(--emp-green);
+  --bs-btn-active-bg: var(--emp-green-deep);
+  --bs-btn-active-border-color: var(--emp-green-deep);
+}
+.btn-outline-danger { --bs-btn-color: var(--emp-brick); --bs-btn-border-color: #dcaaa4; --bs-btn-hover-bg: var(--emp-brick); --bs-btn-hover-border-color: var(--emp-brick); }
+.form-label { font-weight: 600; font-size: 0.9rem; margin-bottom: 0.3rem; }
+.form-control:focus, .form-select:focus, .btn:focus-visible {
+  border-color: var(--emp-green);
+  box-shadow: 0 0 0 0.2rem rgba(28, 91, 69, 0.25);
+}
+a:focus-visible { outline: 2px solid var(--emp-amber); outline-offset: 2px; }
+.filter-bar { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-bottom: 1rem; }
+.filter-bar .form-control, .filter-bar .form-select { width: auto; min-width: 9rem; flex: 0 1 auto; }
+.filter-bar .grow { flex: 1 1 14rem; }
+
+/* ---------- Definition lists used on detail pages ---------- */
+.facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0.9rem 1.5rem; margin: 0; }
+.facts dt { font-size: 0.82rem; font-weight: 500; color: var(--emp-muted); }
+.facts dd { margin: 0; font-weight: 600; }
+
+/* ---------- Landing and sign-in pages ---------- */
+.landing { max-width: 60rem; }
+.landing h1 { font-size: clamp(2.1rem, 5vw, 3.2rem); line-height: 1.08; max-width: 17ch; }
+.landing .lead { max-width: 56ch; color: var(--emp-muted); }
+.role-list { list-style: none; padding: 0; margin: 2rem 0 0; border-top: 1px solid var(--emp-rule); }
+.role-list li { display: grid; grid-template-columns: 9rem 1fr; gap: 1rem; padding: 0.9rem 0; border-bottom: 1px solid var(--emp-rule); }
+.role-list strong { font-family: var(--emp-serif); font-size: 1.05rem; }
+@media (max-width: 560px) { .role-list li { grid-template-columns: 1fr; gap: 0.2rem; } }
+.auth-box { max-width: 30rem; margin: 0 auto; }
+.auth-box.wide { max-width: 42rem; }
+
+.score-big { font-family: var(--emp-serif); font-size: 2.4rem; font-weight: 700; line-height: 1; }
+
+/* Inputs stay white even though the page background is tinted. */
+.form-control, .form-select, .form-check-input:not(:checked) { background-color: #fff; }
+.input-group-text { background-color: #f7f9f8; }
+
+/* Status tags keep the plain typeface when they sit inside a heading. */
+h1 .tag, h2 .tag { font-family: var(--emp-sans); letter-spacing: 0; vertical-align: middle; }
+
+.site-header .search-box { width: 10.5rem; }
+.site-header .account { display: flex; align-items: center; gap: 0.75rem; margin-left: auto; }
+.landing .lead { font-weight: 400; }
