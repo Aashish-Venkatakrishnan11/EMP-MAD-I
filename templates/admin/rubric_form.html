@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field with context %}
+{% block title %}Edit criterion | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="panel auth-box wide">
+  <h1>Edit criterion</h1>
+  <p class="text-muted">Rubric of {{ exam.name }}.</p>
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-12">{{ field(form, 'criterion_name', 'Criterion', rubric.criterion_name, required=true) }}</div>
+      <div class="col-md-6">{{ field(form, 'max_marks', 'Marked out of', rubric.max_marks|num, type='number', required=true, extra='min="0.5" step="any"') }}</div>
+      <div class="col-md-6">{{ field(form, 'weightage', 'Weightage %', rubric.weightage|num, type='number', required=true, extra='min="1" max="100" step="any"') }}</div>
+      <div class="col-12">{{ field(form, 'description', 'What to look for (optional)', rubric.description) }}</div>
+    </div>
+    <button class="btn btn-primary mt-4" type="submit">Save changes</button>
+    <a class="btn btn-link mt-4" href="{{ url_for('admin.exam_detail', exam_id=exam.id) }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

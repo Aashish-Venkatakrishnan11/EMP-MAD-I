@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% block title %}Change examiner | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="panel auth-box wide">
+  <h1>Change examiner</h1>
+  <dl class="facts mb-4">
+    <div><dt>Examination</dt><dd>{{ slot.examination.name }}</dd></div>
+    <div><dt>Slot</dt><dd>{{ slot.date|datefmt }}, {{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }}</dd></div>
+    <div><dt>Current examiner</dt><dd>{{ slot.examiner.name }}</dd></div>
+    <div><dt>Students booked</dt><dd>{{ slot.active_bookings|length }}</dd></div>
+  </dl>
+  {% if candidates %}
+  <form method="post">
+    <label class="form-label" for="examiner_id">New examiner</label>
+    <select class="form-select" id="examiner_id" name="examiner_id" required>
+      <option value="">Choose an approved examiner</option>
+      {% for examiner in candidates %}<option value="{{ examiner.id }}">{{ examiner.name }} ({{ examiner.department }})</option>{% endfor %}
+    </select>
+    <div class="form-text">Bookings stay as they are. The new examiner is also assigned to the examination, and must be free at this time.</div>
+    <button class="btn btn-primary mt-4" type="submit">Change examiner</button>
+    <a class="btn btn-link mt-4" href="{{ url_for('admin.slots', exam_id=slot.exam_id) }}">Cancel</a>
+  </form>
+  {% else %}
+  <p class="text-muted">There is no other approved examiner to hand this slot to.</p>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.slots', exam_id=slot.exam_id) }}">Back to slots</a>
+  {% endif %}
+</div>
+{% endblock %}

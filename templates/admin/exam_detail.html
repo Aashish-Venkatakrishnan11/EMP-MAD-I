@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag, timeline, field with context %}
+{% block title %}{{ exam.name }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ exam.name }} {{ tag(exam.status) }}{% if exam.results_published %} {{ tag('Published') }}{% endif %}</h1>
+    <p>{{ exam.course.code }} - {{ exam.course.name }}. Examination ID {{ exam.id }}.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="{{ url_for('admin.exam_edit', exam_id=exam.id) }}">Edit details and timeline</a>
+    <form method="post" action="{{ url_for('admin.exam_delete', exam_id=exam.id) }}">
+      <button class="btn btn-outline-danger" type="submit">Remove</button>
+    </form>
+  </div>
+</div>
+
+{{ timeline(exam) }}
+
+<section class="panel mt-3">
+  <h2>Open and close phases</h2>
+  {% if exam.results_published %}
+    <p class="text-muted">Results are published and visible to students. Unpublish them to let examiners correct an evaluation.</p>
+    <form method="post" action="{{ url_for('admin.exam_publish', exam_id=exam.id) }}">
+      <button class="btn btn-outline-danger" name="action" value="unpublish">Unpublish results</button>
+    </form>
+  {% else %}
+    {% if exam.status == 'Slot Creation' and not exam.slot_creation_open %}
+      <div class="alert alert-warning py-2">Slot creation is switched on, but today is outside the slot creation dates, so examiners cannot create slots yet. Edit the timeline to change the dates.</div>
+    {% endif %}
+    {% if exam.status == 'Booking Open' and not exam.booking_open %}
+      <div class="alert alert-warning py-2">Slot booking is switched on, but today is outside the booking dates, so students cannot book. Edit the timeline to change the dates.</div>
+    {% endif %}
+    <div class="d-flex flex-wrap gap-2">
+      <form method="post" action="{{ url_for('admin.exam_status', exam_id=exam.id) }}" class="d-flex flex-wrap gap-2">
+        {% if exam.status == 'Slot Creation' %}
+          <button class="btn btn-outline-primary" name="action" value="close_slot_creation">Close slot creation</button>
+        {% else %}
+          <button class="btn {{ 'btn-outline-primary' if exam.booking_started else 'btn-primary' }}" name="action" value="open_slot_creation">Open slot creation</button>
+        {% endif %}
+        {% if exam.status == 'Booking Open' %}
+          <button class="btn btn-outline-primary" name="action" value="close_booking">Close slot booking</button>
+        {% else %}
+          <button class="btn btn-primary" name="action" value="open_booking">Open slot booking</button>
+        {% endif %}
+        {% if exam.booking_started and exam.status != 'Completed' %}
+          <button class="btn btn-outline-primary" name="action" value="complete">Mark as completed</button>
+        {% endif %}
+      </form>
+      {% if exam.booking_started and exam.status in ['Closed', 'Completed'] %}
+      <form method="post" action="{{ url_for('admin.exam_publish', exam_id=exam.id) }}">
+        <button class="btn btn-primary" name="action" value="publish">Publish results</button>
+      </form>
+      {% endif %}
+    </div>
+    {% if exam.evaluation_open and pending_evaluations %}
+      <p class="text-muted mt-3 mb-0">{{ pending_evaluations }} booked student(s) are still waiting to be evaluated.</p>
+    {% endif %}
+  {% endif %}
+</section>
+
+<section class="panel">
+  <h2>Details</h2>
+  <dl class="facts">
+    <div><dt>Type</dt><dd>{{ exam.exam_type }}</dd></div>
+    <div><dt>Duration</dt><dd>{{ exam.duration_minutes }} minutes</dd></div>
+    <div><dt>Maximum marks</dt><dd>{{ exam.max_marks|num }}</dd></div>
+    <div><dt>Slots</dt><dd>{{ exam.slots|length }}</dd></div>
+    <div><dt>Active bookings</dt><dd><a href="{{ url_for('admin.bookings', exam_id=exam.id) }}">{{ exam.active_booking_count }}</a></dd></div>
+  </dl>
+  {% if exam.description %}<p class="mt-3 mb-0">{{ exam.description }}</p>{% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Assigned examiners</h2></div>
+  {% if exam.examiners %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Examiner</th><th>Department</th><th>Slots for this examination</th><th></th></tr></thead>
+      <tbody>
+        {% for examiner in exam.examiners %}
+        <tr>
+          <td><a href="{{ url_for('admin.examiner_detail', examiner_id=examiner.id) }}">{{ examiner.name }}</a> {% if examiner.status != 'Approved' %}{{ tag(examiner.status) }}{% endif %}</td>
+          <td>{{ examiner.department }}</td>
+          <td>{{ exam.slots|selectattr('examiner_id', 'equalto', examiner.id)|list|length }}</td>
+          <td class="actions">
+            <form method="post" action="{{ url_for('admin.exam_unassign_examiner', exam_id=exam.id, examiner_id=examiner.id) }}">
+              <button class="btn btn-sm btn-outline-danger" type="submit">Unassign</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No examiner is assigned. Only assigned examiners can create slots for this examination.</p>
+  {% endif %}
+  <div class="p-3 border-top">
+    {% if available_examiners %}
+    <form class="filter-bar mb-0" method="post" action="{{ url_for('admin.exam_assign_examiner', exam_id=exam.id) }}">
+      <select class="form-select grow" name="examiner_id" aria-label="Examiner to assign" required>
+        <option value="">Choose an approved examiner</option>
+        {% for examiner in available_examiners %}<option value="{{ examiner.id }}">{{ examiner.name }} ({{ examiner.department }})</option>{% endfor %}
+      </select>
+      <button class="btn btn-primary" type="submit">Assign examiner</button>
+    </form>
+    {% else %}
+    <span class="text-muted">Every approved examiner is already assigned.</span>
+    {% endif %}
+  </div>
+</section>
+
+<section class="panel panel-flush" id="rubric">
+  <div class="panel-head pb-3">
+    <h2>Rubric</h2>
+    <span class="{{ 'text-muted' if exam.total_weightage == 100 else 'text-danger fw-semibold' }}">Total weightage {{ exam.total_weightage|num }}% of 100%</span>
+  </div>
+  {% if exam.rubrics %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Criterion</th><th>Marked out of</th><th>Weightage</th><th>Worth in final score</th><th></th></tr></thead>
+      <tbody>
+        {% for rubric in exam.rubrics %}
+        <tr>
+          <td><strong>{{ rubric.criterion_name }}</strong>{% if rubric.description %}<div class="small text-muted">{{ rubric.description }}</div>{% endif %}</td>
+          <td>{{ rubric.max_marks|num }}</td>
+          <td>{{ rubric.weightage|num }}%</td>
+          <td>{{ (rubric.weightage / exam.total_weightage * exam.max_marks)|round(2)|num }} marks</td>
+          <td class="actions">
+            {% if not exam.has_evaluations %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.rubric_edit', rubric_id=rubric.id) }}">Edit</a>
+            <form method="post" action="{{ url_for('admin.rubric_delete', rubric_id=rubric.id) }}">
+              <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No criterion yet. Examiners cannot evaluate until the rubric has at least one criterion.</p>
+  {% endif %}
+  <div class="p-3 border-top">
+    {% if exam.has_evaluations %}
+      <span class="text-muted">The rubric is locked because evaluations have been submitted.</span>
+    {% else %}
+    <form method="post" action="{{ url_for('admin.rubric_add', exam_id=exam.id) }}">
+      <div class="row g-2 align-items-end">
+        <div class="col-md-3"><label class="form-label" for="criterion_name">Criterion</label><input class="form-control" id="criterion_name" name="criterion_name" required></div>
+        <div class="col-md-2"><label class="form-label" for="max_marks">Marked out of</label><input class="form-control" type="number" id="max_marks" name="max_marks" min="0.5" step="any" required></div>
+        <div class="col-md-2"><label class="form-label" for="weightage">Weightage %</label><input class="form-control" type="number" id="weightage" name="weightage" min="1" max="100" step="any" required></div>
+        <div class="col-md-3"><label class="form-label" for="rubric_description">What to look for</label><input class="form-control" id="rubric_description" name="description"></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100" type="submit">Add criterion</button></div>
+      </div>
+    </form>
+    {% endif %}
+  </div>
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3">
+    <h2>Slots</h2>
+    <a href="{{ url_for('admin.slots', exam_id=exam.id) }}">Manage slots</a>
+  </div>
+  {% if exam.slots %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Date</th><th>Time</th><th>Examiner</th><th>Venue</th><th>Booked</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for slot in exam.slots %}
+        <tr>
+          <td>{{ slot.id }}</td>
+          <td>{{ slot.date|datefmt }}</td>
+          <td>{{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }}</td>
+          <td>{{ slot.examiner.name }}</td>
+          <td>{{ slot.venue or '-' }}</td>
+          <td>{{ slot.active_bookings|length }} of {{ slot.capacity }}</td>
+          <td>{{ tag(slot.status) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No slot yet. Assigned examiners create slots while slot creation is open.</p>
+  {% endif %}
+</section>
+{% endblock %}

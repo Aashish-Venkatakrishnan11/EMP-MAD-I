@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Courses | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Courses</h1><p>Examinations are created under a course.</p></div>
+  <a class="btn btn-primary" href="{{ url_for('admin.course_new') }}">Add course</a>
+</div>
+<form class="filter-bar" method="get">
+  <input class="form-control grow" type="search" name="q" value="{{ q }}" placeholder="Search by course code or name">
+  <button class="btn btn-outline-primary" type="submit">Search</button>
+  {% if q %}<a class="btn btn-link" href="{{ url_for('admin.courses') }}">Clear</a>{% endif %}
+</form>
+<section class="panel panel-flush">
+  {% if courses %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Code</th><th>Course name</th><th>Examinations</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for course in courses %}
+        <tr>
+          <td>{{ course.id }}</td>
+          <td><strong>{{ course.code }}</strong></td>
+          <td>{{ course.name }}{% if course.description %}<div class="small text-muted">{{ course.description|truncate(90) }}</div>{% endif %}</td>
+          <td><a href="{{ url_for('admin.exams', course_id=course.id) }}">{{ course.examinations|length }}</a></td>
+          <td>{{ tag(course.status) }}</td>
+          <td class="actions">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.course_edit', course_id=course.id) }}">Edit</a>
+            <form method="post" action="{{ url_for('admin.course_delete', course_id=course.id) }}">
+              <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">{% if q %}No course matches "{{ q }}".{% else %}No course yet. Add the first course to start creating examinations.{% endif %}</p>
+  {% endif %}
+</section>
+{% endblock %}

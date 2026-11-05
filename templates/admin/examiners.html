@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Examiners | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Examiners</h1><p>Approve registrations, add examiners, or deactivate an account.</p></div>
+  <a class="btn btn-primary" href="{{ url_for('admin.examiner_new') }}">Add examiner</a>
+</div>
+<form class="filter-bar" method="get">
+  <input class="form-control grow" type="search" name="q" value="{{ q }}" placeholder="Search by name, department, email or ID">
+  <select class="form-select" name="status" aria-label="Status">
+    <option value="">All statuses</option>
+    {% for option in statuses %}<option {{ 'selected' if option == status }}>{{ option }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-outline-primary" type="submit">Filter</button>
+  {% if q or status %}<a class="btn btn-link" href="{{ url_for('admin.examiners') }}">Clear</a>{% endif %}
+</form>
+<section class="panel panel-flush">
+  {% if examiners %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Contact</th><th>Examinations</th><th>Slots</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for examiner in examiners %}
+        <tr>
+          <td>{{ examiner.id }}</td>
+          <td><a href="{{ url_for('admin.examiner_detail', examiner_id=examiner.id) }}"><strong>{{ examiner.name }}</strong></a>{% if examiner.designation %}<div class="small text-muted">{{ examiner.designation }}</div>{% endif %}</td>
+          <td>{{ examiner.department }}</td>
+          <td class="small">{{ examiner.user.email }}{% if examiner.phone %}<br>{{ examiner.phone }}{% endif %}</td>
+          <td>{{ examiner.examinations|length }}</td>
+          <td>{{ examiner.slots|length }}</td>
+          <td>{{ tag(examiner.status) }}</td>
+          <td class="actions">
+            <form method="post" action="{{ url_for('admin.examiner_status', examiner_id=examiner.id) }}">
+              <input type="hidden" name="next" value="{{ request.full_path }}">
+              {% if examiner.status == 'Pending' %}
+                <button class="btn btn-sm btn-primary" name="action" value="approve">Approve</button>
+                <button class="btn btn-sm btn-outline-danger" name="action" value="reject">Reject</button>
+              {% elif examiner.status == 'Approved' %}
+                <button class="btn btn-sm btn-outline-danger" name="action" value="deactivate">Deactivate</button>
+              {% elif examiner.status == 'Deactivated' %}
+                <button class="btn btn-sm btn-outline-primary" name="action" value="reactivate">Reactivate</button>
+              {% elif examiner.status == 'Rejected' %}
+                <button class="btn btn-sm btn-outline-primary" name="action" value="approve">Approve</button>
+              {% endif %}
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No examiner matches. Examiners appear here when they register or when you add them.</p>
+  {% endif %}
+</section>
+{% endblock %}

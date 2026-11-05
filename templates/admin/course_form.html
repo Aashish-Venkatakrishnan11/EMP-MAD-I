@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field with context %}
+{% block title %}{{ 'Edit course' if course else 'Add course' }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="panel auth-box wide">
+  <h1>{{ 'Edit course' if course else 'Add course' }}</h1>
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-4">{{ field(form, 'code', 'Course code', course.code if course else '', required=true, extra='maxlength="20"') }}</div>
+      <div class="col-md-8">{{ field(form, 'name', 'Course name', course.name if course else '', required=true) }}</div>
+      <div class="col-12">
+        <label class="form-label" for="description">Description (optional)</label>
+        <textarea class="form-control" id="description" name="description" rows="3">{{ form.get('description', course.description if course else '') or '' }}</textarea>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="status">Status</label>
+        {% set current = form.get('status', course.status if course else 'Active') %}
+        <select class="form-select" id="status" name="status">
+          {% for option in ['Active', 'Inactive'] %}
+          <option value="{{ option }}" {{ 'selected' if option == current }}>{{ option }}</option>
+          {% endfor %}
+        </select>
+        <div class="form-text">Students do not see examinations of an inactive course.</div>
+      </div>
+    </div>
+    <button class="btn btn-primary mt-4" type="submit">{{ 'Save changes' if course else 'Add course' }}</button>
+    <a class="btn btn-link mt-4" href="{{ url_for('admin.courses') }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

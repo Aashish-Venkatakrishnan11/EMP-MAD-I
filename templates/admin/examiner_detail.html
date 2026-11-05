@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}{{ examiner.name }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ examiner.name }} {{ tag(examiner.status) }}</h1>
+    <p>Examiner ID {{ examiner.id }}. Registered {{ examiner.user.created_at|datefmt }}.</p>
+  </div>
+  <form method="post" action="{{ url_for('admin.examiner_status', examiner_id=examiner.id) }}" class="d-flex gap-2">
+    <input type="hidden" name="next" value="{{ url_for('admin.examiner_detail', examiner_id=examiner.id) }}">
+    {% if examiner.status in ['Pending', 'Rejected'] %}<button class="btn btn-primary" name="action" value="approve">Approve</button>{% endif %}
+    {% if examiner.status == 'Pending' %}<button class="btn btn-outline-danger" name="action" value="reject">Reject</button>{% endif %}
+    {% if examiner.status == 'Approved' %}<button class="btn btn-outline-danger" name="action" value="deactivate">Deactivate</button>{% endif %}
+    {% if examiner.status == 'Deactivated' %}<button class="btn btn-outline-primary" name="action" value="reactivate">Reactivate</button>{% endif %}
+  </form>
+</div>
+
+<section class="panel">
+  <h2>Profile</h2>
+  <dl class="facts">
+    <div><dt>Username</dt><dd>{{ examiner.user.username }}</dd></div>
+    <div><dt>Email</dt><dd>{{ examiner.user.email }}</dd></div>
+    <div><dt>Phone</dt><dd>{{ examiner.phone or '-' }}</dd></div>
+    <div><dt>Department</dt><dd>{{ examiner.department }}</dd></div>
+    <div><dt>Designation</dt><dd>{{ examiner.designation or '-' }}</dd></div>
+  </dl>
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Assigned examinations</h2></div>
+  {% if examiner.examinations %}
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>Examination</th><th>Course</th><th>Type</th><th>Status</th></tr></thead>
+    <tbody>{% for exam in examiner.examinations %}
+      <tr><td><a href="{{ url_for('admin.exam_detail', exam_id=exam.id) }}">{{ exam.name }}</a></td><td>{{ exam.course.code }}</td><td>{{ exam.exam_type }}</td><td>{{ tag(exam.status) }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">Not assigned to any examination. Assign examiners from an examination's page.</p>{% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Slots</h2></div>
+  {% if slots %}
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>ID</th><th>Examination</th><th>Date</th><th>Time</th><th>Booked</th><th>Status</th></tr></thead>
+    <tbody>{% for slot in slots %}
+      <tr><td>{{ slot.id }}</td><td>{{ slot.examination.name }}</td><td>{{ slot.date|datefmt }}</td><td>{{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }}</td><td>{{ slot.active_bookings|length }} of {{ slot.capacity }}</td><td>{{ tag(slot.status) }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">This examiner has not created a slot yet.</p>{% endif %}
+</section>
+{% endblock %}

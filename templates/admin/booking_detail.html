@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Booking #{{ booking.id }} | Examination Management Portal{% endblock %}
+{% block content %}
+{% set slot = booking.slot %}
+{% set exam = booking.examination %}
+<div class="page-head">
+  <div>
+    <h1>Booking #{{ booking.id }} {{ tag(booking.status) }}</h1>
+    <p>Booked on {{ booking.booking_date|datetimefmt }}{% if booking.cancelled_at %}, cancelled on {{ booking.cancelled_at|datetimefmt }}{% endif %}.</p>
+  </div>
+  {% if booking.status == 'Booked' %}
+  <a class="btn btn-primary" href="{{ url_for('admin.booking_reschedule', booking_id=booking.id) }}">Reschedule</a>
+  {% endif %}
+</div>
+<section class="panel">
+  <dl class="facts">
+    <div><dt>Student</dt><dd><a href="{{ url_for('admin.student_detail', student_id=booking.student.id) }}">{{ booking.student.name }}</a> ({{ booking.student.roll_number }})</dd></div>
+    <div><dt>Examination</dt><dd><a href="{{ url_for('admin.exam_detail', exam_id=exam.id) }}">{{ exam.name }}</a></dd></div>
+    <div><dt>Slot</dt><dd>{{ slot.date|datefmt }}, {{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }}</dd></div>
+    <div><dt>Venue</dt><dd>{{ slot.venue or '-' }}</dd></div>
+    <div><dt>Examiner</dt><dd>{{ slot.examiner.name }}</dd></div>
+    {% if booking.note %}<div><dt>Note</dt><dd>{{ booking.note }}</dd></div>{% endif %}
+  </dl>
+</section>
+<section class="panel panel-flush">
+  <div class="panel-head pb-3">
+    <h2>Evaluation</h2>
+    {% if booking.is_evaluated %}<span>Final score <strong>{{ booking.total_marks|num }} / {{ exam.max_marks|num }}</strong>, {{ 'published' if exam.results_published else 'not published yet' }}</span>{% endif %}
+  </div>
+  {% if booking.is_evaluated %}
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>Criterion</th><th>Marks</th><th>Weightage</th><th>Comment</th></tr></thead>
+    <tbody>{% for score in booking.scores %}
+      <tr><td>{{ score.rubric.criterion_name }}</td><td>{{ score.marks_awarded|num }} / {{ score.rubric.max_marks|num }}</td><td>{{ score.rubric.weightage|num }}%</td><td>{{ score.comment or '-' }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  <p class="p-3 mb-0 border-top"><strong>Remarks:</strong> {{ booking.remarks }}</p>
+  {% else %}
+  <p class="empty">This booking has not been evaluated.</p>
+  {% endif %}
+</section>
+{% endblock %}

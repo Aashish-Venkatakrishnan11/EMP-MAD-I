@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Bookings | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Bookings</h1><p>Every booking ever made, including cancelled and completed ones.</p></div>
+</div>
+<form class="filter-bar" method="get">
+  <input class="form-control grow" type="search" name="q" value="{{ q }}" placeholder="Search by student, roll number, examination or booking ID">
+  <select class="form-select" name="exam_id" aria-label="Examination">
+    <option value="">All examinations</option>
+    {% for exam in exams %}<option value="{{ exam.id }}" {{ 'selected' if exam.id == exam_id }}>{{ exam.name }}</option>{% endfor %}
+  </select>
+  <select class="form-select" name="status" aria-label="Status">
+    <option value="">All statuses</option>
+    {% for option in booking_statuses %}<option {{ 'selected' if option == status }}>{{ option }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-outline-primary" type="submit">Filter</button>
+  {% if q or exam_id or status %}<a class="btn btn-link" href="{{ url_for('admin.bookings') }}">Clear</a>{% endif %}
+</form>
+<section class="panel panel-flush">
+  {% if bookings %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Student</th><th>Examination</th><th>Slot</th><th>Examiner</th><th>Booked on</th><th>Marks</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td><a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}">#{{ b.id }}</a></td>
+          <td><a href="{{ url_for('admin.student_detail', student_id=b.student.id) }}">{{ b.student.name }}</a><div class="small text-muted">{{ b.student.roll_number }}</div></td>
+          <td>{{ b.examination.name }}</td>
+          <td>{{ b.slot.date|datefmt }}, {{ b.slot.start_time|timefmt }}</td>
+          <td>{{ b.slot.examiner.name }}</td>
+          <td class="small">{{ b.booking_date|datetimefmt }}</td>
+          <td>{% if b.is_evaluated %}{{ b.total_marks|num }} / {{ b.examination.max_marks|num }}{% else %}-{% endif %}</td>
+          <td>{{ tag(b.status) }}</td>
+          <td class="actions">
+            {% if b.status == 'Booked' %}<a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.booking_reschedule', booking_id=b.id) }}">Reschedule</a>{% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No booking matches.</p>
+  {% endif %}
+</section>
+{% endblock %}

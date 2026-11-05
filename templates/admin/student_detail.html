@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}{{ student.name }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ student.name }}</h1>
+    <p>Student ID {{ student.id }}. Registered {{ student.user.created_at|datefmt }}.</p>
+  </div>
+</div>
+<section class="panel">
+  <h2>Profile</h2>
+  <dl class="facts">
+    <div><dt>Roll number</dt><dd>{{ student.roll_number }}</dd></div>
+    <div><dt>Username</dt><dd>{{ student.user.username }}</dd></div>
+    <div><dt>Email</dt><dd>{{ student.user.email }}</dd></div>
+    <div><dt>Phone</dt><dd>{{ student.phone or '-' }}</dd></div>
+    <div><dt>Programme</dt><dd>{{ student.program or '-' }}</dd></div>
+  </dl>
+</section>
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Booking history</h2></div>
+  {% if bookings %}
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>ID</th><th>Examination</th><th>Slot</th><th>Examiner</th><th>Booked on</th><th>Marks</th><th>Status</th></tr></thead>
+    <tbody>{% for b in bookings %}
+      <tr>
+        <td><a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}">#{{ b.id }}</a></td>
+        <td>{{ b.examination.name }}</td>
+        <td>{{ b.slot.date|datefmt }}, {{ b.slot.start_time|timefmt }}</td>
+        <td>{{ b.slot.examiner.name }}</td>
+        <td>{{ b.booking_date|datetimefmt }}</td>
+        <td>{% if b.is_evaluated %}{{ b.total_marks|num }} / {{ b.examination.max_marks|num }}{% else %}-{% endif %}</td>
+        <td>{{ tag(b.status) }}</td>
+      </tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">This student has not booked any slot.</p>{% endif %}
+</section>
+{% endblock %}

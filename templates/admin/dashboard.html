@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Admin dashboard | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Admin dashboard</h1>
+    <p>Everything in the portal at a glance.</p>
+  </div>
+  <div class="d-flex gap-2">
+    <a class="btn btn-outline-primary" href="{{ url_for('admin.course_new') }}">Add course</a>
+    <a class="btn btn-primary" href="{{ url_for('admin.exam_new') }}">Create examination</a>
+  </div>
+</div>
+
+<dl class="figures">
+  <div><dt>Courses</dt><dd><a href="{{ url_for('admin.courses') }}">{{ totals.courses }}</a></dd></div>
+  <div><dt>Examinations</dt><dd><a href="{{ url_for('admin.exams') }}">{{ totals.examinations }}</a></dd></div>
+  <div><dt>Examiners</dt><dd><a href="{{ url_for('admin.examiners') }}">{{ totals.examiners }}</a></dd></div>
+  <div><dt>Students</dt><dd><a href="{{ url_for('admin.students') }}">{{ totals.students }}</a></dd></div>
+  <div><dt>Examination slots</dt><dd><a href="{{ url_for('admin.slots') }}">{{ totals.slots }}</a></dd></div>
+  <div><dt>Bookings</dt><dd><a href="{{ url_for('admin.bookings') }}">{{ totals.bookings }}</a></dd></div>
+</dl>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3">
+    <h2>Examiner registrations awaiting approval</h2>
+    <a href="{{ url_for('admin.examiners') }}">All examiners</a>
+  </div>
+  {% if pending_examiners %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Name</th><th>Department</th><th>Email</th><th>Registered</th><th></th></tr></thead>
+      <tbody>
+        {% for examiner in pending_examiners %}
+        <tr>
+          <td><a href="{{ url_for('admin.examiner_detail', examiner_id=examiner.id) }}">{{ examiner.name }}</a></td>
+          <td>{{ examiner.department }}</td>
+          <td>{{ examiner.user.email }}</td>
+          <td>{{ examiner.user.created_at|datefmt }}</td>
+          <td class="actions">
+            <form method="post" action="{{ url_for('admin.examiner_status', examiner_id=examiner.id) }}">
+              <input type="hidden" name="next" value="{{ url_for('admin.dashboard') }}">
+              <button class="btn btn-sm btn-primary" name="action" value="approve">Approve</button>
+              <button class="btn btn-sm btn-outline-danger" name="action" value="reject">Reject</button>
+            </form>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No registration is waiting for approval.</p>
+  {% endif %}
+</section>
+
+<div class="row g-3">
+  <div class="col-lg-6">
+    <section class="panel h-100">
+      <h2>Bookings per examination</h2>
+      {% for exam, count in bookings_per_exam %}
+      <div class="bar-row">
+        <span class="bar-label" title="{{ exam.name }}">{{ exam.name }}</span>
+        <div class="progress" role="img" aria-label="{{ count }} bookings">
+          <div class="progress-bar" style="width: {{ (count / max_exam_bookings * 100)|round|int }}%"></div>
+        </div>
+        <span class="bar-value">{{ count }}</span>
+      </div>
+      {% else %}
+      <p class="text-muted mb-0">No examination has been created yet.</p>
+      {% endfor %}
+    </section>
+  </div>
+  <div class="col-lg-6">
+    <section class="panel h-100">
+      <h2>Examiner workload (students booked)</h2>
+      {% for examiner, slot_count, student_count in workload %}
+      <div class="bar-row">
+        <span class="bar-label" title="{{ examiner.name }}">{{ examiner.name }} <span class="text-muted">({{ slot_count }} slots)</span></span>
+        <div class="progress" role="img" aria-label="{{ student_count }} students">
+          <div class="progress-bar bar-amber" style="width: {{ (student_count / max_workload * 100)|round|int }}%"></div>
+        </div>
+        <span class="bar-value">{{ student_count }}</span>
+      </div>
+      {% else %}
+      <p class="text-muted mb-0">No examiner has been approved yet.</p>
+      {% endfor %}
+    </section>
+  </div>
+  <div class="col-lg-6">
+    <section class="panel h-100">
+      <h2>Examinations by status</h2>
+      {% for status, count in exam_status_counts %}
+      <div class="bar-row">
+        <span class="bar-label">{{ status }}</span>
+        <div class="progress" role="img" aria-label="{{ count }} examinations">
+          <div class="progress-bar" style="width: {{ (count / (totals.examinations or 1) * 100)|round|int }}%"></div>
+        </div>
+        <span class="bar-value">{{ count }}</span>
+      </div>
+      {% endfor %}
+    </section>
+  </div>
+  <div class="col-lg-6">
+    <section class="panel h-100">
+      <h2>Bookings by status</h2>
+      {% for status, count in booking_status_counts %}
+      <div class="bar-row">
+        <span class="bar-label">{{ status }}</span>
+        <div class="progress" role="img" aria-label="{{ count }} bookings">
+          <div class="progress-bar bar-amber" style="width: {{ (count / (totals.bookings or 1) * 100)|round|int }}%"></div>
+        </div>
+        <span class="bar-value">{{ count }}</span>
+      </div>
+      {% endfor %}
+    </section>
+  </div>
+</div>
+
+<section class="panel panel-flush mt-3">
+  <div class="panel-head pb-3">
+    <h2>Latest bookings</h2>
+    <a href="{{ url_for('admin.bookings') }}">All bookings</a>
+  </div>
+  {% if recent_bookings %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Student</th><th>Examination</th><th>Slot</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for booking in recent_bookings %}
+        <tr>
+          <td><a href="{{ url_for('admin.booking_detail', booking_id=booking.id) }}">#{{ booking.id }}</a></td>
+          <td>{{ booking.student.name }}</td>
+          <td>{{ booking.examination.name }}</td>
+          <td>{{ booking.slot.date|datefmt }}, {{ booking.slot.start_time|timefmt }}</td>
+          <td>{{ tag(booking.status) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No student has booked a slot yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

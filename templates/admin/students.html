@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Students | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Students</h1><p>Every registered student and their booking count.</p></div>
+</div>
+<form class="filter-bar" method="get">
+  <input class="form-control grow" type="search" name="q" value="{{ q }}" placeholder="Search by name, roll number, email or ID">
+  <button class="btn btn-outline-primary" type="submit">Search</button>
+  {% if q %}<a class="btn btn-link" href="{{ url_for('admin.students') }}">Clear</a>{% endif %}
+</form>
+<section class="panel panel-flush">
+  {% if students %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Name</th><th>Roll number</th><th>Programme</th><th>Email</th><th>Bookings</th></tr></thead>
+      <tbody>
+        {% for student in students %}
+        <tr>
+          <td>{{ student.id }}</td>
+          <td><a href="{{ url_for('admin.student_detail', student_id=student.id) }}"><strong>{{ student.name }}</strong></a></td>
+          <td>{{ student.roll_number }}</td>
+          <td>{{ student.program or '-' }}</td>
+          <td>{{ student.user.email }}</td>
+          <td>{{ student.bookings|length }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">{% if q %}No student matches "{{ q }}".{% else %}No student has registered yet.{% endif %}</p>
+  {% endif %}
+</section>
+{% endblock %}

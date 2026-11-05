@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Search | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Search</h1>
+    <p>Find students, examiners, examinations or bookings by name or ID.</p>
+  </div>
+</div>
+<form class="filter-bar" method="get">
+  <input class="form-control grow" type="search" name="q" value="{{ q }}" placeholder="Name, roll number, email or ID" autofocus>
+  <button class="btn btn-primary" type="submit">Search</button>
+</form>
+
+{% if results is not none %}
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Students ({{ results.students|length }})</h2></div>
+  {% if results.students %}
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>ID</th><th>Name</th><th>Roll number</th><th>Email</th></tr></thead>
+    <tbody>{% for s in results.students %}
+      <tr><td>{{ s.id }}</td><td><a href="{{ url_for('admin.student_detail', student_id=s.id) }}">{{ s.name }}</a></td><td>{{ s.roll_number }}</td><td>{{ s.user.email }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">No student matches "{{ q }}".</p>{% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Examiners ({{ results.examiners|length }})</h2></div>
+  {% if results.examiners %}
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>ID</th><th>Name</th><th>Department</th><th>Status</th></tr></thead>
+    <tbody>{% for e in results.examiners %}
+      <tr><td>{{ e.id }}</td><td><a href="{{ url_for('admin.examiner_detail', examiner_id=e.id) }}">{{ e.name }}</a></td><td>{{ e.department }}</td><td>{{ tag(e.status) }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">No examiner matches "{{ q }}".</p>{% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Examinations ({{ results.examinations|length }})</h2></div>
+  {% if results.examinations %}
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>ID</th><th>Examination</th><th>Course</th><th>Type</th><th>Status</th></tr></thead>
+    <tbody>{% for x in results.examinations %}
+      <tr><td>{{ x.id }}</td><td><a href="{{ url_for('admin.exam_detail', exam_id=x.id) }}">{{ x.name }}</a></td><td>{{ x.course.code }}</td><td>{{ x.exam_type }}</td><td>{{ tag(x.status) }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">No examination matches "{{ q }}".</p>{% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Bookings ({{ results.bookings|length }})</h2></div>
+  {% if results.bookings %}
+  <div class="table-responsive"><table class="table">
+    <thead><tr><th>ID</th><th>Student</th><th>Examination</th><th>Slot</th><th>Status</th></tr></thead>
+    <tbody>{% for b in results.bookings %}
+      <tr><td><a href="{{ url_for('admin.booking_detail', booking_id=b.id) }}">#{{ b.id }}</a></td><td>{{ b.student.name }} ({{ b.student.roll_number }})</td><td>{{ b.examination.name }}</td><td>{{ b.slot.date|datefmt }}, {{ b.slot.start_time|timefmt }}</td><td>{{ tag(b.status) }}</td></tr>
+    {% endfor %}</tbody>
+  </table></div>
+  {% else %}<p class="empty">No booking matches "{{ q }}".</p>{% endif %}
+</section>
+{% endif %}
+{% endblock %}

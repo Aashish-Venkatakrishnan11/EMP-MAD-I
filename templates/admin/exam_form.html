@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field with context %}
+{% block title %}{{ 'Edit examination' if exam else 'Create examination' }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="panel auth-box wide">
+  <h1>{{ 'Edit examination' if exam else 'Create examination' }}</h1>
+  {% if not courses %}
+    <p class="text-muted">An examination belongs to a course. <a href="{{ url_for('admin.course_new') }}">Add a course</a> first.</p>
+  {% else %}
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-8">{{ field(form, 'name', 'Examination name', exam.name if exam else '', required=true) }}</div>
+      <div class="col-md-4">
+        <label class="form-label" for="course_id">Course</label>
+        {% set current = form.get('course_id', exam.course_id if exam else '')|string %}
+        <select class="form-select" id="course_id" name="course_id" required>
+          <option value="">Choose a course</option>
+          {% for course in courses %}
+          <option value="{{ course.id }}" {{ 'selected' if course.id|string == current }}>{{ course.code }} - {{ course.name }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">
+        <label class="form-label" for="exam_type">Type</label>
+        {% set current = form.get('exam_type', exam.exam_type if exam else '') %}
+        <select class="form-select" id="exam_type" name="exam_type" required>
+          {% for option in exam_types %}<option {{ 'selected' if option == current }}>{{ option }}</option>{% endfor %}
+        </select>
+      </div>
+      <div class="col-md-4">{{ field(form, 'duration_minutes', 'Duration (minutes)', exam.duration_minutes if exam else '', type='number', required=true, extra='min="1" step="1"') }}</div>
+      <div class="col-md-4">{{ field(form, 'max_marks', 'Maximum marks', (exam.max_marks|num) if exam else '', type='number', required=true, extra='min="1" step="any"') }}</div>
+      <div class="col-12">
+        <label class="form-label" for="description">Description (optional)</label>
+        <textarea class="form-control" id="description" name="description" rows="2">{{ form.get('description', exam.description if exam else '') or '' }}</textarea>
+      </div>
+    </div>
+
+    <h2 class="mt-4">Timeline</h2>
+    <p class="text-muted">Both dates of each period are included. Booking cannot start before slot creation ends.</p>
+    <div class="row g-3">
+      <div class="col-md-6">{{ field(form, 'slot_creation_start', 'Slot creation starts', exam.slot_creation_start if exam else '', type='date', required=true) }}</div>
+      <div class="col-md-6">{{ field(form, 'slot_creation_end', 'Slot creation ends', exam.slot_creation_end if exam else '', type='date', required=true) }}</div>
+      <div class="col-md-6">{{ field(form, 'booking_start', 'Slot booking starts', exam.booking_start if exam else '', type='date', required=true) }}</div>
+      <div class="col-md-6">{{ field(form, 'booking_end', 'Slot booking ends (deadline)', exam.booking_end if exam else '', type='date', required=true) }}</div>
+    </div>
+    <button class="btn btn-primary mt-4" type="submit">{{ 'Save changes' if exam else 'Create examination' }}</button>
+    <a class="btn btn-link mt-4" href="{{ url_for('admin.exam_detail', exam_id=exam.id) if exam else url_for('admin.exams') }}">Cancel</a>
+  </form>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Reschedule booking | Examination Management Portal{% endblock %}
+{% block content %}
+{% set slot = booking.slot %}
+<div class="panel auth-box wide">
+  <h1>Reschedule booking #{{ booking.id }}</h1>
+  <dl class="facts mb-4">
+    <div><dt>Student</dt><dd>{{ booking.student.name }} ({{ booking.student.roll_number }})</dd></div>
+    <div><dt>Examination</dt><dd>{{ booking.examination.name }}</dd></div>
+    <div><dt>Current slot</dt><dd>{{ slot.date|datefmt }}, {{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }} with {{ slot.examiner.name }}</dd></div>
+  </dl>
+  {% if targets %}
+  <form method="post">
+    <label class="form-label" for="slot_id">Move to</label>
+    <select class="form-select" id="slot_id" name="slot_id" required>
+      <option value="">Choose a slot with a free seat</option>
+      {% for target in targets %}
+      <option value="{{ target.id }}">{{ target.date|datefmt }}, {{ target.start_time|timefmt }} to {{ target.end_time|timefmt }} with {{ target.examiner.name }} ({{ target.available_seats }} seats left)</option>
+      {% endfor %}
+    </select>
+    <div class="form-text">The seat in the current slot is released and one seat is taken in the new slot. The Admin can do this outside the booking period.</div>
+    <button class="btn btn-primary mt-4" type="submit">Reschedule booking</button>
+    <a class="btn btn-link mt-4" href="{{ url_for('admin.booking_detail', booking_id=booking.id) }}">Cancel</a>
+  </form>
+  {% else %}
+  <p class="text-muted">No other slot of this examination has a free seat.</p>
+  <a class="btn btn-outline-primary" href="{{ url_for('admin.booking_detail', booking_id=booking.id) }}">Back to booking</a>
+  {% endif %}
+</div>
+{% endblock %}

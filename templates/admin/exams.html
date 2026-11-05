@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Examinations | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Examinations</h1><p>Open an examination to manage its rubric, examiners, status and slots.</p></div>
+  <a class="btn btn-primary" href="{{ url_for('admin.exam_new') }}">Create examination</a>
+</div>
+<form class="filter-bar" method="get">
+  <input class="form-control grow" type="search" name="q" value="{{ q }}" placeholder="Search by name, course or ID">
+  <select class="form-select" name="course_id" aria-label="Course">
+    <option value="">All courses</option>
+    {% for course in courses %}<option value="{{ course.id }}" {{ 'selected' if course.id == course_id }}>{{ course.code }}</option>{% endfor %}
+  </select>
+  <select class="form-select" name="exam_type" aria-label="Type">
+    <option value="">All types</option>
+    {% for option in exam_types %}<option {{ 'selected' if option == exam_type }}>{{ option }}</option>{% endfor %}
+  </select>
+  <select class="form-select" name="status" aria-label="Status">
+    <option value="">All statuses</option>
+    {% for option in exam_statuses %}<option {{ 'selected' if option == status }}>{{ option }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-outline-primary" type="submit">Filter</button>
+  {% if q or course_id or exam_type or status %}<a class="btn btn-link" href="{{ url_for('admin.exams') }}">Clear</a>{% endif %}
+</form>
+<section class="panel panel-flush">
+  {% if exams %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Examination</th><th>Course</th><th>Type</th><th>Slot creation</th><th>Slot booking</th><th>Slots</th><th>Bookings</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for exam in exams %}
+        <tr>
+          <td>{{ exam.id }}</td>
+          <td><a href="{{ url_for('admin.exam_detail', exam_id=exam.id) }}"><strong>{{ exam.name }}</strong></a></td>
+          <td>{{ exam.course.code }}</td>
+          <td>{{ exam.exam_type }}</td>
+          <td class="small">{{ exam.slot_creation_start|datefmt }} to {{ exam.slot_creation_end|datefmt }}</td>
+          <td class="small">{{ exam.booking_start|datefmt }} to {{ exam.booking_end|datefmt }}</td>
+          <td>{{ exam.slots|length }}</td>
+          <td>{{ exam.active_booking_count }}</td>
+          <td>{{ tag(exam.status) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No examination matches. Create one, or clear the filters.</p>
+  {% endif %}
+</section>
+{% endblock %}

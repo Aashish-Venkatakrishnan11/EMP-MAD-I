@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Slots | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Examination slots</h1><p>All slots created by examiners. Change the examiner or cancel a slot when something goes wrong.</p></div>
+</div>
+<form class="filter-bar" method="get">
+  <input class="form-control grow" type="search" name="q" value="{{ q }}" placeholder="Search by examiner, examination or venue">
+  <select class="form-select" name="exam_id" aria-label="Examination">
+    <option value="">All examinations</option>
+    {% for exam in exams %}<option value="{{ exam.id }}" {{ 'selected' if exam.id == exam_id }}>{{ exam.name }}</option>{% endfor %}
+  </select>
+  <select class="form-select" name="status" aria-label="Status">
+    <option value="">All statuses</option>
+    {% for option in slot_statuses %}<option {{ 'selected' if option == status }}>{{ option }}</option>{% endfor %}
+  </select>
+  <button class="btn btn-outline-primary" type="submit">Filter</button>
+  {% if q or exam_id or status %}<a class="btn btn-link" href="{{ url_for('admin.slots') }}">Clear</a>{% endif %}
+</form>
+<section class="panel panel-flush">
+  {% if slots %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Examination</th><th>Date</th><th>Time</th><th>Examiner</th><th>Venue</th><th>Booked</th><th>Seats left</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for slot in slots %}
+        <tr>
+          <td>{{ slot.id }}</td>
+          <td><a href="{{ url_for('admin.exam_detail', exam_id=slot.exam_id) }}">{{ slot.examination.name }}</a></td>
+          <td>{{ slot.date|datefmt }}</td>
+          <td>{{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }}</td>
+          <td>{{ slot.examiner.name }}</td>
+          <td>{{ slot.venue or '-' }}</td>
+          <td>{{ slot.active_bookings|length }} of {{ slot.capacity }}</td>
+          <td>{{ slot.available_seats }}</td>
+          <td>{{ tag(slot.status) }}</td>
+          <td class="actions">
+            {% if slot.status in ['Available', 'Full'] %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('admin.slot_change_examiner', slot_id=slot.id) }}">Change examiner</a>
+            <form method="post" action="{{ url_for('admin.slot_cancel', slot_id=slot.id) }}">
+              <button class="btn btn-sm btn-outline-danger" type="submit">Cancel slot</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No slot matches. Slots appear here once examiners create them.</p>
+  {% endif %}
+</section>
+{% endblock %}
