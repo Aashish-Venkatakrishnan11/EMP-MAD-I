@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Examiner dashboard | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Examiner dashboard</h1>
+    <p>{{ current_user.full_name }}, {{ current_user.examiner_profile.department }}</p>
+  </div>
+</div>
+
+<dl class="figures">
+  <div><dt>Assigned examinations</dt><dd>{{ exams|length }}</dd></div>
+  <div><dt>Slots created</dt><dd><a href="{{ url_for('examiner.slots') }}">{{ slots|length }}</a></dd></div>
+  <div><dt>Students booked</dt><dd>{{ students_booked }}</dd></div>
+  <div><dt>Pending evaluations</dt><dd><a href="{{ url_for('examiner.evaluations') }}">{{ pending|length }}</a></dd></div>
+</dl>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Assigned examinations</h2></div>
+  {% if exams %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Examination</th><th>Course</th><th>Type</th><th>Slot creation period</th><th>My slots</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for exam in exams %}
+        <tr>
+          <td><a href="{{ url_for('examiner.exam_detail', exam_id=exam.id) }}"><strong>{{ exam.name }}</strong></a></td>
+          <td>{{ exam.course.code }}</td>
+          <td>{{ exam.exam_type }}</td>
+          <td class="small">{{ exam.slot_creation_start|datefmt }} to {{ exam.slot_creation_end|datefmt }}</td>
+          <td>{{ exam.slots|selectattr('examiner_id', 'equalto', current_user.examiner_profile.id)|list|length }}</td>
+          <td>{{ tag(exam.status) }}</td>
+          <td class="actions">
+            {% if exam.slot_creation_open %}
+            <a class="btn btn-sm btn-primary" href="{{ url_for('examiner.slot_new', exam_id=exam.id) }}">Create slot</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">The Admin has not assigned you to an examination yet. Assigned examinations appear here.</p>
+  {% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3">
+    <h2>Pending evaluations</h2>
+    <a href="{{ url_for('examiner.evaluations') }}">All evaluations</a>
+  </div>
+  {% if pending %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Student</th><th>Examination</th><th>Slot</th><th></th></tr></thead>
+      <tbody>
+        {% for b in pending[:8] %}
+        <tr>
+          <td>{{ b.student.name }} <span class="text-muted">({{ b.student.roll_number }})</span></td>
+          <td>{{ b.examination.name }}</td>
+          <td>{{ b.slot.date|datefmt }}, {{ b.slot.start_time|timefmt }}</td>
+          <td class="actions">
+            {% if b.examination.evaluation_open and b.examination.rubrics %}
+              <a class="btn btn-sm btn-primary" href="{{ url_for('examiner.evaluate', booking_id=b.id) }}">Evaluate</a>
+            {% else %}
+              <span class="small text-muted">Opens after booking closes</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">Nobody is waiting to be evaluated.</p>
+  {% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3">
+    <h2>Upcoming slots</h2>
+    <a href="{{ url_for('examiner.slots') }}">All my slots</a>
+  </div>
+  {% if upcoming_slots %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Time</th><th>Examination</th><th>Venue</th><th>Booked</th><th>Status</th></tr></thead>
+      <tbody>
+        {% for slot in upcoming_slots %}
+        <tr>
+          <td><a href="{{ url_for('examiner.slot_detail', slot_id=slot.id) }}">{{ slot.date|datefmt }}</a></td>
+          <td>{{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }}</td>
+          <td>{{ slot.examination.name }}</td>
+          <td>{{ slot.venue or '-' }}</td>
+          <td>{{ slot.active_bookings|length }} of {{ slot.capacity }}</td>
+          <td>{{ tag(slot.status) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">You have no upcoming slot.</p>
+  {% endif %}
+</section>
+{% endblock %}

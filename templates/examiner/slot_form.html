@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field with context %}
+{% block title %}{{ 'Update slot' if slot else 'Create slot' }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="panel auth-box wide">
+  <h1>{{ 'Update slot' if slot else 'Create slot' }}</h1>
+  <p class="text-muted">{{ exam.name }} ({{ exam.exam_type }}, {{ exam.duration_minutes }} minutes per student).</p>
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-4">{{ field(form, 'date', 'Date', slot.date if slot else '', type='date', required=true, extra='min="' ~ today.isoformat() ~ '"') }}</div>
+      <div class="col-md-4">{{ field(form, 'start_time', 'Start time', (slot.start_time|timefmt) if slot else '', type='time', required=true) }}</div>
+      <div class="col-md-4">{{ field(form, 'end_time', 'End time', (slot.end_time|timefmt) if slot else '', type='time', required=true) }}</div>
+      <div class="col-md-4">{{ field(form, 'capacity', 'Maximum students', slot.capacity if slot else '', type='number', required=true, extra='min="1" max="500" step="1"', help='The slot closes by itself when this many students have booked.') }}</div>
+      <div class="col-md-8">{{ field(form, 'venue', 'Venue or meeting link (optional)', slot.venue if slot else '') }}</div>
+    </div>
+    <button class="btn btn-primary mt-4" type="submit">{{ 'Save changes' if slot else 'Create slot' }}</button>
+    <a class="btn btn-link mt-4" href="{{ url_for('examiner.exam_detail', exam_id=exam.id) }}">Cancel</a>
+  </form>
+</div>
+{% endblock %}

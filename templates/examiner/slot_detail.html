@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Slot students | Examination Management Portal{% endblock %}
+{% block content %}
+{% set exam = slot.examination %}
+<div class="page-head">
+  <div>
+    <h1>{{ slot.date|datefmt }}, {{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }} {{ tag(slot.status) }}</h1>
+    <p><a href="{{ url_for('examiner.exam_detail', exam_id=exam.id) }}">{{ exam.name }}</a>{% if slot.venue %}, {{ slot.venue }}{% endif %}. {{ slot.active_bookings|length }} of {{ slot.capacity }} seats booked.</p>
+  </div>
+</div>
+
+{% if not exam.rubrics %}
+<div class="alert alert-warning py-2">The Admin has not defined a rubric for this examination, so evaluation is not possible yet.</div>
+{% elif exam.results_published %}
+<div class="alert alert-info py-2">Results are published. Evaluations are locked.</div>
+{% elif not exam.evaluation_open %}
+<div class="alert alert-info py-2">Evaluation opens once the Admin closes slot booking.</div>
+{% endif %}
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Booked students</h2></div>
+  {% if bookings %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Booking</th><th>Student</th><th>Roll number</th><th>Booked on</th><th>Marks</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td>#{{ b.id }}</td>
+          <td>{{ b.student.name }}</td>
+          <td>{{ b.student.roll_number }}</td>
+          <td class="small">{{ b.booking_date|datetimefmt }}</td>
+          <td>{% if b.is_evaluated %}{{ b.total_marks|num }} / {{ exam.max_marks|num }}{% else %}-{% endif %}</td>
+          <td>{{ tag(b.status) }}</td>
+          <td class="actions">
+            {% if b.status != 'Cancelled' and exam.evaluation_open and exam.rubrics %}
+            <a class="btn btn-sm {{ 'btn-outline-primary' if b.is_evaluated else 'btn-primary' }}" href="{{ url_for('examiner.evaluate', booking_id=b.id) }}">{{ 'Edit evaluation' if b.is_evaluated else 'Evaluate' }}</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No student has booked this slot.</p>
+  {% endif %}
+</section>
+{% endblock %}

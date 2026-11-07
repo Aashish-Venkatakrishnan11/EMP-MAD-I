@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag, timeline with context %}
+{% block title %}{{ exam.name }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ exam.name }} {{ tag(exam.status) }}</h1>
+    <p>{{ exam.course.code }} - {{ exam.course.name }}. {{ exam.exam_type }}, {{ exam.duration_minutes }} minutes, {{ exam.max_marks|num }} marks.</p>
+  </div>
+  {% if exam.slot_creation_open %}
+  <a class="btn btn-primary" href="{{ url_for('examiner.slot_new', exam_id=exam.id) }}">Create slot</a>
+  {% endif %}
+</div>
+
+{{ timeline(exam) }}
+
+{% if not exam.slot_creation_open and not exam.booking_started %}
+<div class="alert alert-info py-2 mt-3">Slots can be created only while the slot creation period is open ({{ exam.slot_creation_start|datefmt }} to {{ exam.slot_creation_end|datefmt }}, and switched on by the Admin).</div>
+{% endif %}
+
+<section class="panel panel-flush mt-3">
+  <div class="panel-head pb-3">
+    <h2>My slots for this examination</h2>
+    {% if not exam.slots_editable %}<span class="text-muted">Booking has started, so slots can no longer be changed.</span>{% endif %}
+  </div>
+  {% if my_slots %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Time</th><th>Venue</th><th>Booked</th><th>Seats left</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for slot in my_slots %}
+        <tr>
+          <td>{{ slot.date|datefmt }}</td>
+          <td>{{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }}</td>
+          <td>{{ slot.venue or '-' }}</td>
+          <td>{{ slot.active_bookings|length }} of {{ slot.capacity }}</td>
+          <td>{{ slot.available_seats }}</td>
+          <td>{{ tag(slot.status) }}</td>
+          <td class="actions">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('examiner.slot_detail', slot_id=slot.id) }}">Students</a>
+            {% if exam.slots_editable and not slot.bookings %}
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('examiner.slot_edit', slot_id=slot.id) }}">Update</a>
+            <form method="post" action="{{ url_for('examiner.slot_delete', slot_id=slot.id) }}">
+              <button class="btn btn-sm btn-outline-danger" type="submit">Remove</button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">You have not created a slot for this examination.</p>
+  {% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Rubric</h2></div>
+  {% if exam.rubrics %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Criterion</th><th>Marked out of</th><th>Weightage</th></tr></thead>
+      <tbody>
+        {% for rubric in exam.rubrics %}
+        <tr>
+          <td><strong>{{ rubric.criterion_name }}</strong>{% if rubric.description %}<div class="small text-muted">{{ rubric.description }}</div>{% endif %}</td>
+          <td>{{ rubric.max_marks|num }}</td>
+          <td>{{ rubric.weightage|num }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">The Admin has not defined the rubric yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
