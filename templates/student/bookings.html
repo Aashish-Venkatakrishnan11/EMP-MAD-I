@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}My bookings | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>My bookings</h1><p>Your complete booking history. A booking can be cancelled until the booking deadline.</p></div>
+  <a class="btn btn-primary" href="{{ url_for('student.exams', only_open=1) }}">Book another examination</a>
+</div>
+<section class="panel panel-flush">
+  {% if bookings %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>ID</th><th>Examination</th><th>Slot</th><th>Examiner</th><th>Booked on</th><th>Cancel before</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for b in bookings %}
+        {% set exam = b.examination %}
+        <tr>
+          <td>#{{ b.id }}</td>
+          <td><a href="{{ url_for('student.exam_detail', exam_id=exam.id) }}">{{ exam.name }}</a><div class="small text-muted">{{ exam.course.code }}</div></td>
+          <td>{{ b.slot.date|datefmt }}<div class="small text-muted">{{ b.slot.start_time|timefmt }} to {{ b.slot.end_time|timefmt }}{% if b.slot.venue %}, {{ b.slot.venue }}{% endif %}</div></td>
+          <td>{{ b.slot.examiner.name }}</td>
+          <td class="small">{{ b.booking_date|datetimefmt }}</td>
+          <td class="small">{{ exam.booking_end|datefmt }}</td>
+          <td>{{ tag(b.status) }}{% if b.note %}<div class="small text-muted">{{ b.note }}</div>{% endif %}</td>
+          <td class="actions">
+            {% if b.status == 'Booked' and exam.booking_open %}
+              <form method="post" action="{{ url_for('student.cancel_booking', booking_id=b.id) }}">
+                <button class="btn btn-sm btn-outline-danger" type="submit">Cancel booking</button>
+              </form>
+            {% elif b.result_visible %}
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('student.result_detail', booking_id=b.id) }}">View result</a>
+            {% elif b.status == 'Booked' %}
+              <span class="small text-muted">Deadline passed</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">You have not booked any slot yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

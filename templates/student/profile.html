@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_macros.html" import field with context %}
+{% block title %}Profile | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="panel auth-box wide">
+  <h1>My profile</h1>
+  <p class="text-muted">Username {{ current_user.username }}. Roll number {{ student.roll_number }}. Student ID {{ student.id }}.</p>
+  <form method="post">
+    <div class="row g-3">
+      <div class="col-md-6">{{ field(form, 'full_name', 'Full name', current_user.full_name, required=true) }}</div>
+      <div class="col-md-6">{{ field(form, 'email', 'Email', current_user.email, type='email', required=true) }}</div>
+      <div class="col-md-6">{{ field(form, 'phone', 'Phone', student.phone, type='tel') }}</div>
+      <div class="col-md-6">{{ field(form, 'program', 'Programme', student.program) }}</div>
+    </div>
+    <h2 class="mt-4">Change password</h2>
+    <p class="text-muted">Leave these empty to keep your current password.</p>
+    <div class="row g-3">
+      <div class="col-md-4">{{ field(form, 'current_password', 'Current password', type='password') }}</div>
+      <div class="col-md-4">{{ field(form, 'new_password', 'New password', type='password', extra='minlength="6"') }}</div>
+      <div class="col-md-4">{{ field(form, 'confirm_password', 'Confirm new password', type='password', extra='minlength="6"') }}</div>
+    </div>
+    <button class="btn btn-primary mt-4" type="submit">Save changes</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Schedule | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Examination schedule</h1><p>Your upcoming examinations, earliest first.</p></div>
+</div>
+<section class="panel panel-flush">
+  {% if bookings %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Time</th><th>Examination</th><th>Type</th><th>Duration</th><th>Examiner</th><th>Venue</th></tr></thead>
+      <tbody>
+        {% for b in bookings %}
+        <tr>
+          <td><strong>{{ b.slot.date|datefmt }}</strong>{% if b.slot.date == today %} <span class="tag tag-wait">Today</span>{% endif %}</td>
+          <td>{{ b.slot.start_time|timefmt }} to {{ b.slot.end_time|timefmt }}</td>
+          <td><a href="{{ url_for('student.exam_detail', exam_id=b.slot.exam_id) }}">{{ b.examination.name }}</a><div class="small text-muted">{{ b.examination.course.code }}</div></td>
+          <td>{{ b.examination.exam_type }}</td>
+          <td>{{ b.examination.duration_minutes }} min</td>
+          <td>{{ b.slot.examiner.name }}</td>
+          <td>{{ b.slot.venue or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">Nothing is scheduled. <a href="{{ url_for('student.exams', only_open=1) }}">Book a slot</a> to see it here.</p>
+  {% endif %}
+</section>
+{% endblock %}

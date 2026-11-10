@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Examinations | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Examinations</h1><p>Search and filter, then open an examination to see its slots.</p></div>
+</div>
+<form class="filter-bar" method="get">
+  <input class="form-control grow" type="search" name="q" value="{{ q }}" placeholder="Search by examination or course">
+  <select class="form-select" name="course_id" aria-label="Course">
+    <option value="">All courses</option>
+    {% for course in courses %}<option value="{{ course.id }}" {{ 'selected' if course.id == course_id }}>{{ course.code }}</option>{% endfor %}
+  </select>
+  <select class="form-select" name="exam_type" aria-label="Type">
+    <option value="">All types</option>
+    {% for option in exam_types %}<option {{ 'selected' if option == exam_type }}>{{ option }}</option>{% endfor %}
+  </select>
+  <div class="form-check">
+    <input class="form-check-input" type="checkbox" id="only_open" name="only_open" value="1" {{ 'checked' if only_open }}>
+    <label class="form-check-label" for="only_open">Open for booking</label>
+  </div>
+  <button class="btn btn-outline-primary" type="submit">Filter</button>
+  {% if q or course_id or exam_type or only_open %}<a class="btn btn-link" href="{{ url_for('student.exams') }}">Clear</a>{% endif %}
+</form>
+<section class="panel panel-flush">
+  {% if exams %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Examination</th><th>Course</th><th>Type</th><th>Duration</th><th>Booking period</th><th>Slots available</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for exam in exams %}
+        <tr>
+          <td><a href="{{ url_for('student.exam_detail', exam_id=exam.id) }}"><strong>{{ exam.name }}</strong></a></td>
+          <td>{{ exam.course.code }}<div class="small text-muted">{{ exam.course.name }}</div></td>
+          <td>{{ exam.exam_type }}</td>
+          <td>{{ exam.duration_minutes }} min</td>
+          <td class="small">{{ exam.booking_start|datefmt }} to {{ exam.booking_end|datefmt }}</td>
+          <td>{{ exam.open_slot_count if exam.booking_open else '-' }}</td>
+          <td>{{ tag(exam.status) }}</td>
+          <td class="actions">
+            {% if exam.id in booked_exam_ids %}
+              {{ tag('Booked') }}
+            {% elif exam.booking_open %}
+              <a class="btn btn-sm btn-primary" href="{{ url_for('student.exam_detail', exam_id=exam.id) }}">Choose a slot</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No examination matches. Try a different search or clear the filters.</p>
+  {% endif %}
+</section>
+{% endblock %}

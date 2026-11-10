@@ -1,0 +1,107 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag with context %}
+{% block title %}Student dashboard | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Student dashboard</h1>
+    <p>{{ current_user.full_name }}, {{ current_user.student_profile.roll_number }}</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('student.exams') }}">Search examinations</a>
+</div>
+
+<dl class="figures">
+  <div><dt>Available examinations</dt><dd><a href="{{ url_for('student.exams', only_open=1) }}">{{ open_exams|length }}</a></dd></div>
+  <div><dt>Available slots</dt><dd>{{ open_slot_count }}</dd></div>
+  <div><dt>Upcoming examinations</dt><dd><a href="{{ url_for('student.schedule') }}">{{ upcoming|length }}</a></dd></div>
+  <div><dt>Booked slots</dt><dd><a href="{{ url_for('student.bookings') }}">{{ booked|length }}</a></dd></div>
+  <div><dt>Published results</dt><dd><a href="{{ url_for('student.results') }}">{{ results|length }}</a></dd></div>
+</dl>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3">
+    <h2>Open for booking now</h2>
+    <a href="{{ url_for('student.exams') }}">All examinations</a>
+  </div>
+  {% if open_exams %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Examination</th><th>Course</th><th>Type</th><th>Book before</th><th>Slots available</th><th></th></tr></thead>
+      <tbody>
+        {% for exam in open_exams %}
+        <tr>
+          <td><a href="{{ url_for('student.exam_detail', exam_id=exam.id) }}"><strong>{{ exam.name }}</strong></a></td>
+          <td>{{ exam.course.code }}</td>
+          <td>{{ exam.exam_type }}</td>
+          <td>{{ exam.booking_end|datefmt }}</td>
+          <td>{{ exam.open_slot_count }}</td>
+          <td class="actions">
+            {% if exam.id in booked_exam_ids %}
+              {{ tag('Booked') }}
+            {% else %}
+              <a class="btn btn-sm btn-primary" href="{{ url_for('student.exam_detail', exam_id=exam.id) }}">Choose a slot</a>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No examination is open for booking right now. Check back when a booking period starts.</p>
+  {% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3">
+    <h2>My booked slots</h2>
+    <a href="{{ url_for('student.bookings') }}">Booking history</a>
+  </div>
+  {% if booked %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Time</th><th>Examination</th><th>Examiner</th><th>Venue</th></tr></thead>
+      <tbody>
+        {% for b in booked %}
+        <tr>
+          <td>{{ b.slot.date|datefmt }}</td>
+          <td>{{ b.slot.start_time|timefmt }} to {{ b.slot.end_time|timefmt }}</td>
+          <td><a href="{{ url_for('student.exam_detail', exam_id=b.slot.exam_id) }}">{{ b.examination.name }}</a></td>
+          <td>{{ b.slot.examiner.name }}</td>
+          <td>{{ b.slot.venue or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">You have no booked slot. Pick an examination above to book one.</p>
+  {% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3">
+    <h2>Published results</h2>
+    <a href="{{ url_for('student.results') }}">All results</a>
+  </div>
+  {% if results %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Examination</th><th>Course</th><th>Marks</th><th></th></tr></thead>
+      <tbody>
+        {% for b in results[:5] %}
+        <tr>
+          <td>{{ b.examination.name }}</td>
+          <td>{{ b.examination.course.code }}</td>
+          <td><strong>{{ b.total_marks|num }}</strong> / {{ b.examination.max_marks|num }}</td>
+          <td class="actions"><a class="btn btn-sm btn-outline-primary" href="{{ url_for('student.result_detail', booking_id=b.id) }}">View feedback</a></td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No result has been published for you yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

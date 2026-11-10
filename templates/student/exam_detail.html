@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% from "_macros.html" import tag, timeline with context %}
+{% block title %}{{ exam.name }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>{{ exam.name }} {{ tag(exam.status) }}</h1>
+    <p>{{ exam.course.code }} - {{ exam.course.name }}. {{ exam.exam_type }}, {{ exam.duration_minutes }} minutes, {{ exam.max_marks|num }} marks.</p>
+  </div>
+</div>
+
+{{ timeline(exam) }}
+
+{% if exam.description %}<p class="mt-3">{{ exam.description }}</p>{% endif %}
+
+{% if my_booking %}
+<div class="alert alert-success mt-3">
+  You have a booking for this examination: {{ my_booking.slot.date|datefmt }},
+  {{ my_booking.slot.start_time|timefmt }} to {{ my_booking.slot.end_time|timefmt }} with {{ my_booking.slot.examiner.name }}.
+  <a href="{{ url_for('student.bookings') }}">View my bookings</a>
+</div>
+{% elif not exam.booking_open %}
+<div class="alert alert-info mt-3">Booking is not open for this examination right now.</div>
+{% endif %}
+
+<section class="panel panel-flush mt-3">
+  <div class="panel-head pb-3"><h2>Slots</h2></div>
+  {% if slots %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Date</th><th>Time</th><th>Examiner</th><th>Venue</th><th>Seats left</th><th>Status</th><th></th></tr></thead>
+      <tbody>
+        {% for slot in slots %}
+        <tr>
+          <td>{{ slot.date|datefmt }}</td>
+          <td>{{ slot.start_time|timefmt }} to {{ slot.end_time|timefmt }}</td>
+          <td>{{ slot.examiner.name }}</td>
+          <td>{{ slot.venue or '-' }}</td>
+          <td>{{ slot.available_seats }} of {{ slot.capacity }}</td>
+          <td>{{ tag(slot.status) }}</td>
+          <td class="actions">
+            {% if my_booking and my_booking.slot_id == slot.id %}
+              <strong>Your slot</strong>
+            {% elif exam.booking_open and not my_booking and slot.is_bookable %}
+              <form method="post" action="{{ url_for('student.book_slot', slot_id=slot.id) }}">
+                <button class="btn btn-sm btn-primary" type="submit">Book this slot</button>
+              </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No slot has been published for this examination yet.</p>
+  {% endif %}
+</section>
+
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>How you will be evaluated</h2></div>
+  {% if exam.rubrics %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Criterion</th><th>Weightage</th></tr></thead>
+      <tbody>
+        {% for rubric in exam.rubrics %}
+        <tr>
+          <td><strong>{{ rubric.criterion_name }}</strong>{% if rubric.description %}<div class="small text-muted">{{ rubric.description }}</div>{% endif %}</td>
+          <td>{{ rubric.weightage|num }}%</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">The rubric has not been published yet.</p>
+  {% endif %}
+</section>
+{% endblock %}
