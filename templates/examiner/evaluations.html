@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+{% block title %}Evaluations | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Evaluations</h1><p>Students booked into your slots.</p></div>
+</div>
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Waiting for evaluation ({{ pending|length }})</h2></div>
+  {% if pending %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Student</th><th>Roll number</th><th>Examination</th><th>Slot</th><th></th></tr></thead>
+      <tbody>
+        {% for b in pending %}
+        <tr>
+          <td>{{ b.student.name }}</td>
+          <td>{{ b.student.roll_number }}</td>
+          <td>{{ b.examination.name }}</td>
+          <td><a href="{{ url_for('examiner.slot_detail', slot_id=b.slot.id) }}">{{ b.slot.date|datefmt }}, {{ b.slot.start_time|timefmt }}</a></td>
+          <td class="actions">
+            {% if b.examination.evaluation_open and b.examination.rubrics %}
+              <a class="btn btn-sm btn-primary" href="{{ url_for('examiner.evaluate', booking_id=b.id) }}">Evaluate</a>
+            {% elif not b.examination.rubrics %}
+              <span class="small text-muted">No rubric yet</span>
+            {% else %}
+              <span class="small text-muted">Opens after booking closes</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">Nobody is waiting to be evaluated.</p>
+  {% endif %}
+</section>
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Evaluated ({{ done|length }})</h2></div>
+  {% if done %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Student</th><th>Examination</th><th>Marks</th><th>Evaluated on</th><th></th></tr></thead>
+      <tbody>
+        {% for b in done %}
+        <tr>
+          <td>{{ b.student.name }} <span class="text-muted">({{ b.student.roll_number }})</span></td>
+          <td>{{ b.examination.name }}</td>
+          <td>{{ b.total_marks|num }} / {{ b.examination.max_marks|num }}</td>
+          <td class="small">{{ b.evaluated_at|datetimefmt }}</td>
+          <td class="actions">
+            {% if b.examination.evaluation_open %}
+              <a class="btn btn-sm btn-outline-primary" href="{{ url_for('examiner.evaluate', booking_id=b.id) }}">Edit evaluation</a>
+            {% else %}
+              <span class="small text-muted">Locked</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">You have not evaluated anyone yet.</p>
+  {% endif %}
+</section>
+{% endblock %}

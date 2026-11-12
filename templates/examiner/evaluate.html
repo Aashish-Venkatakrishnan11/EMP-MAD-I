@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}Evaluate {{ booking.student.name }} | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Evaluate {{ booking.student.name }}</h1>
+    <p>{{ booking.student.roll_number }}. {{ exam.name }}, {{ slot.date|datefmt }} at {{ slot.start_time|timefmt }}.</p>
+  </div>
+</div>
+<form method="post">
+  <section class="panel panel-flush">
+    <div class="panel-head pb-3">
+      <h2>Rubric</h2>
+      <span class="text-muted">Final score is out of {{ exam.max_marks|num }} and is worked out from the weightages.</span>
+    </div>
+    <div class="table-responsive">
+      <table class="table">
+        <thead><tr><th>Criterion</th><th>Weightage</th><th style="width: 11rem">Marks awarded</th><th>Comment (optional)</th></tr></thead>
+        <tbody>
+          {% for rubric in exam.rubrics %}
+          {% set saved = existing.get(rubric.id) %}
+          <tr>
+            <td><label for="marks_{{ rubric.id }}"><strong>{{ rubric.criterion_name }}</strong></label>{% if rubric.description %}<div class="small text-muted">{{ rubric.description }}</div>{% endif %}</td>
+            <td>{{ rubric.weightage|num }}%</td>
+            <td>
+              <div class="input-group">
+                <input class="form-control" type="number" id="marks_{{ rubric.id }}" name="marks_{{ rubric.id }}"
+                       min="0" max="{{ rubric.max_marks|num }}" step="any" required
+                       value="{{ form.get('marks_' ~ rubric.id, (saved.marks_awarded|num) if saved else '') }}">
+                <span class="input-group-text">/ {{ rubric.max_marks|num }}</span>
+              </div>
+            </td>
+            <td><input class="form-control" name="comment_{{ rubric.id }}" maxlength="255" aria-label="Comment on {{ rubric.criterion_name }}"
+                       value="{{ form.get('comment_' ~ rubric.id, saved.comment if saved else '') or '' }}"></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+  <section class="panel">
+    <label class="form-label" for="remarks">Overall remarks for the student</label>
+    <textarea class="form-control" id="remarks" name="remarks" rows="3" required>{{ form.get('remarks', booking.remarks or '') }}</textarea>
+    <div class="form-text">The student sees the marks and remarks after the Admin publishes results.</div>
+    <button class="btn btn-primary mt-3" type="submit">Submit marks and remarks</button>
+    <a class="btn btn-link mt-3" href="{{ url_for('examiner.slot_detail', slot_id=slot.id) }}">Cancel</a>
+  </section>
+</form>
+{% endblock %}

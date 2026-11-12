@@ -1,0 +1,59 @@
+{# Stand-alone file sent as a download, so its styles are written inline
+   and it does not depend on the portal being reachable. #}
+{% set exam = booking.examination %}
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Scorecard - {{ exam.name }} - {{ booking.student.roll_number }}</title>
+<style>
+  body { font-family: Georgia, Cambria, serif; color: #16241f; max-width: 720px; margin: 40px auto; padding: 0 24px; line-height: 1.5; }
+  header { border-bottom: 4px solid #e3a72f; padding-bottom: 12px; margin-bottom: 24px; }
+  h1 { font-size: 26px; margin: 0; color: #123d2e; }
+  header p { margin: 4px 0 0; color: #5b6b64; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-family: Arial, Helvetica, sans-serif; font-size: 14px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #d5ded9; vertical-align: top; }
+  th { color: #5b6b64; font-weight: 600; }
+  .facts td:first-child { width: 34%; color: #5b6b64; }
+  .total { font-size: 34px; font-weight: bold; color: #1c5b45; }
+  .muted { color: #5b6b64; font-size: 13px; font-family: Arial, Helvetica, sans-serif; }
+  @media print { body { margin: 0 auto; } }
+</style>
+</head>
+<body>
+<header>
+  <h1>Examination scorecard</h1>
+  <p>Examination Management Portal</p>
+</header>
+
+<table class="facts">
+  <tr><td>Student</td><td><strong>{{ booking.student.name }}</strong></td></tr>
+  <tr><td>Roll number</td><td>{{ booking.student.roll_number }}</td></tr>
+  <tr><td>Course</td><td>{{ exam.course.code }} - {{ exam.course.name }}</td></tr>
+  <tr><td>Examination</td><td>{{ exam.name }} ({{ exam.exam_type }})</td></tr>
+  <tr><td>Date and time</td><td>{{ booking.slot.date|datefmt }}, {{ booking.slot.start_time|timefmt }} to {{ booking.slot.end_time|timefmt }}</td></tr>
+  <tr><td>Examiner</td><td>{{ booking.slot.examiner.name }}</td></tr>
+  <tr><td>Booking ID</td><td>#{{ booking.id }}</td></tr>
+</table>
+
+<p><span class="total">{{ booking.total_marks|num }}</span> out of {{ exam.max_marks|num }}
+  ({{ (booking.total_marks / exam.max_marks * 100)|round(1)|num }}%)</p>
+
+<table>
+  <thead><tr><th>Criterion</th><th>Marks</th><th>Weightage</th><th>Comment</th></tr></thead>
+  <tbody>
+    {% for score in booking.scores %}
+    <tr>
+      <td>{{ score.rubric.criterion_name }}</td>
+      <td>{{ score.marks_awarded|num }} / {{ score.rubric.max_marks|num }}</td>
+      <td>{{ score.rubric.weightage|num }}%</td>
+      <td>{{ score.comment or '-' }}</td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+
+<p><strong>Examiner's remarks:</strong> {{ booking.remarks }}</p>
+<p class="muted">Generated on {{ generated|datetimefmt }}. Open this file in a browser and print it to keep a paper or PDF copy.</p>
+</body>
+</html>

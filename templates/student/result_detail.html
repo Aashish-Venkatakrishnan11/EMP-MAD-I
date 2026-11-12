@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% block title %}Result | Examination Management Portal{% endblock %}
+{% block content %}
+{% set exam = booking.examination %}
+<div class="page-head">
+  <div>
+    <h1>{{ exam.name }}</h1>
+    <p>{{ exam.course.code }} - {{ exam.course.name }}. Taken on {{ booking.slot.date|datefmt }} with {{ booking.slot.examiner.name }}.</p>
+  </div>
+  <a class="btn btn-primary" href="{{ url_for('student.scorecard', booking_id=booking.id) }}">Download scorecard</a>
+</div>
+<section class="panel">
+  <span class="score-big">{{ booking.total_marks|num }}</span>
+  <span class="text-muted">out of {{ exam.max_marks|num }} ({{ (booking.total_marks / exam.max_marks * 100)|round(1)|num }}%)</span>
+</section>
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Marks by criterion</h2></div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Criterion</th><th>Marks</th><th>Weightage</th><th>Examiner's comment</th></tr></thead>
+      <tbody>
+        {% for score in booking.scores %}
+        <tr>
+          <td><strong>{{ score.rubric.criterion_name }}</strong></td>
+          <td>{{ score.marks_awarded|num }} / {{ score.rubric.max_marks|num }}</td>
+          <td>{{ score.rubric.weightage|num }}%</td>
+          <td>{{ score.comment or '-' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+<section class="panel">
+  <h2>Examiner's remarks</h2>
+  <p class="mb-0">{{ booking.remarks }}</p>
+</section>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+{% block title %}Results | Examination Management Portal{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div><h1>Results</h1><p>Marks and feedback appear here once the Admin publishes them.</p></div>
+</div>
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Published results</h2></div>
+  {% if results %}
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Examination</th><th>Course</th><th>Taken on</th><th>Marks</th><th>Percentage</th><th></th></tr></thead>
+      <tbody>
+        {% for b in results %}
+        <tr>
+          <td><strong>{{ b.examination.name }}</strong></td>
+          <td>{{ b.examination.course.code }}</td>
+          <td>{{ b.slot.date|datefmt }}</td>
+          <td>{{ b.total_marks|num }} / {{ b.examination.max_marks|num }}</td>
+          <td>{{ (b.total_marks / b.examination.max_marks * 100)|round(1)|num }}%</td>
+          <td class="actions">
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('student.result_detail', booking_id=b.id) }}">View feedback</a>
+            <a class="btn btn-sm btn-outline-primary" href="{{ url_for('student.scorecard', booking_id=b.id) }}">Download scorecard</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="empty">No result has been published for you yet.</p>
+  {% endif %}
+</section>
+{% if awaiting %}
+<section class="panel panel-flush">
+  <div class="panel-head pb-3"><h2>Awaiting results</h2></div>
+  <div class="table-responsive">
+    <table class="table">
+      <thead><tr><th>Examination</th><th>Slot</th><th>Where it stands</th></tr></thead>
+      <tbody>
+        {% for b in awaiting %}
+        <tr>
+          <td>{{ b.examination.name }}</td>
+          <td>{{ b.slot.date|datefmt }}, {{ b.slot.start_time|timefmt }}</td>
+          <td class="text-muted">{{ 'Evaluated, waiting for the Admin to publish' if b.is_evaluated else 'Not evaluated yet' }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</section>
+{% endif %}
+{% endblock %}
